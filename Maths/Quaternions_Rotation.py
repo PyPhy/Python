@@ -6,7 +6,9 @@ from numpy import sin, cos, pi
 def Rotation(r, ω, θ):
     '''
     "r" is the target point which we want to rotate about the "ω" axis with an angle "θ".
-    Rotation is defined by right hand screw rule.
+    1. Rotation is defined by right hand screw rule.
+    2. "ω" is the unit vector i.e. a^2 + b^2 + c^2 = 1.
+    3. Quaternions solves the "gimbal lock" problem which is the disadvantage of Euler rotation matrix.
     '''
     
     x, y, z = r[0], r[1], r[2]
