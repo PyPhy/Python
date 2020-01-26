@@ -89,53 +89,56 @@ def Extract_time(t2, s2, t4, s4, f):
 class FRS(wx.Frame):
 
     def __init__(self):
-        wx.Frame.__init__(self, None, -1, 'Extraction time calculator', size=(400, 600))
+        wx.Frame.__init__(self, None, -1, 'Extraction time calculator', size=(430, 600))
         panel = wx.Panel(self, -1)
         
         self.op1 = wx.RadioButton(panel, label = 'Select one file',
                                   pos=(10, 12), style = wx.RB_GROUP)
         
-        self.op2 = wx.RadioButton(panel, label = 'Ordered files',
-                                  pos = (10,180) )
-        
-        self.op3 = wx.RadioButton(panel, label = 'Random files',
-                                  pos = (10,340) )
-        
         # first file entry
-        wx.StaticText(panel, -1, 'File : ', pos=(10, 60))
-        self.file_op1 = wx.TextCtrl(panel, -1, '', pos=(100, 55))
+        wx.StaticText(panel, -1, 'File : ', pos=(10 + 30, 60))
+        self.file_op1 = wx.TextCtrl(panel, -1, '', pos=(100 + 30, 55))
         
         # Frequency
-        wx.StaticText(panel, -1, 'Frequency : ', pos=(10, 100))
-        self.frqnc_op1 = wx.TextCtrl(panel, -1, '', pos=(100, 95))
+        wx.StaticText(panel, -1, 'Frequency : ', pos=(10 + 30, 100))
+        self.frqnc_op1 = wx.TextCtrl(panel, -1, '', pos=(100 + 30, 95))
         
         # Checkbox
-        self.cb1 = wx.CheckBox(panel, label = 'Save plot', pos = (10,140))
+        self.cb1 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,140))
         
         #%% horizontal line between 1st and 2nd option
         
         ln = wx.StaticLine(panel, -1, pos=(10, 120), style= wx.LI_HORIZONTAL)
-        ln.SetSize((360,100))
+        ln.SetSize((410,100))
+        
+        self.op2 = wx.RadioButton(panel, label = 'Ordered files',
+                                  pos = (10,180) )
         
         # first file entry
-        wx.StaticText(panel, -1, 'From : ', pos=(10, 228))
-        self.file1_op2 = wx.TextCtrl(panel, -1, '', pos=(100, 223))
+        wx.StaticText(panel, -1, 'From : ', pos=(10 + 30, 228))
+        self.file1_op2 = wx.TextCtrl(panel, -1, '', pos=(100 + 30, 223))
         
         # last file entry
-        wx.StaticText(panel, -1, 'to : ', pos=(220, 228))
-        self.file2_op2 = wx.TextCtrl(panel, -1, '', pos=(260, 223))
+        wx.StaticText(panel, -1, 'to : ', pos=(220 + 30, 228))
+        self.file2_op2 = wx.TextCtrl(panel, -1, '', pos=(260 + 30, 223))
         
         # Frequency
-        wx.StaticText(panel, -1, 'Frequency : ', pos=(10, 268))
-        self.frqnc_op2 = wx.TextCtrl(panel, -1, '', pos=(100, 263))
+        wx.StaticText(panel, -1, 'Frequency : ', pos=(10 + 30, 268))
+        self.frqnc_op2 = wx.TextCtrl(panel, -1, '', pos=(100 + 30, 263))
         
         # Checkbox
-        self.cb2 = wx.CheckBox(panel, label = 'Save plot', pos = (10,300))
+        self.cb2 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,300))
 
-        #%% horizontal line between 1st and 2nd option
+        #%% horizontal line between 2nd and 3rds option
         
         ln = wx.StaticLine(panel, -1, pos=(10, 280), style= wx.LI_HORIZONTAL)
-        ln.SetSize((360,100))
+        ln.SetSize((410,100))
+        
+        self.op3 = wx.RadioButton(panel, label = 'Random files',
+                                  pos = (10,340) )
+        
+        # Checkbox
+        self.cb3 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,380))
         
         #%% Calculate button
         self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150, 500))
@@ -280,8 +283,40 @@ class FRS(wx.Frame):
                 Close_it.write('\nfile is ' + 'C4 Trace00' + str(fileC2) + ' and C2 Trace00' + str(fileC4) + '.txt \n')
                 for item in extraction_time:
                     Close_it.write("%s\n" % item)
+                
+                
+                if (self.cb3.GetValue() == True):
+                    
+                    # Pulse figure
+                    peak_C2, _ = find_peaks(S_ampl_C2, prominence=0.02)            # in C2 channel
+                    peak_C4, _ = find_peaks(5-np.array(S_ampl_C4), prominence=4.5) # in C4 channel
+                    
+                    plt.plot(Time_C2, S_ampl_C2)
+                    plt.plot(Time_C4, S_ampl_C4)
+                    
+                    # plot the dot on the peak
+                    plt.plot( list(Time_C2[i] for i in peak_C2), list(S_ampl_C2[i] for i in peak_C2), 'or' )
+                    plt.plot( list(Time_C4[i] for i in peak_C4), list(S_ampl_C4[i] for i in peak_C4), 'og' )
+                    
+                    plt.savefig('C4Trace00' + str(fileC4) + 'C2Trace00' + str(fileC2) + '.jpg')
+                    plt.close()
+                    
+                    # Dot plot
+                    fig = plt.figure()
+    
+                    for i, item in enumerate(extraction_time):
+                        if len(item) > 0:
+                            xAxis = [i+1]* len(item)
+                            plt.scatter(xAxis, item)
+                    
+                    plt.grid()
+                    plt.savefig('C4Trace00' + str(fileC4) + 'C2Trace00' + str(fileC2) + 'cycle.jpg')
+                    plt.close()
             
             Close_it.close()
+        
+        # close the window on the completion of calculation
+        self.Close()
 
 #%%
 
@@ -289,5 +324,5 @@ if __name__ == '__main__':
     
     app = wx.App(False)
     frame = FRS()
-    frame.Show(True)
+    frame.Show()
     app.MainLoop()
