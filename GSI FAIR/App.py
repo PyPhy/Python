@@ -55,7 +55,7 @@ def File_handle(file):
 
 #%% Extration time function
 
-def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
+def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
     
     # Newton's difference table
     diff = []
@@ -106,7 +106,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
         ssmpl2 = list(S_ampl_C2[i] for i in cycle)
         
         # signal detection in C2 channel
-        peksmpl2, _ = find_peaks(ssmpl2, prominence=0.02)
+        peksmpl2, _ = find_peaks(ssmpl2, prominence = pmnc)
         
         # time when signal detecting in channel C2
         tdect = list(tsmpl2[i] for i in peksmpl2)
@@ -263,7 +263,7 @@ class FRS(wx.Frame):
             Time_C4, S_ampl_C4 = File_handle('C4Trace' + file + '.txt')    # Source pulsing file
     
             # calculation of extraction time and on time
-            extraction_time, Ton, Freq = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+            extraction_time, Ton, Freq = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
             
             # Median of the extration time
             Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
@@ -298,7 +298,7 @@ class FRS(wx.Frame):
                 Time_C4, S_ampl_C4 = File_handle('C4Trace' + str(file) + '.txt')    # Source pulsing file
         
                 # calculation of extraction time and on time
-                extraction_time, Ton, Freq = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                extraction_time, Ton, Freq = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
                 
                 # Median of the extration time
                 Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
@@ -330,7 +330,7 @@ class FRS(wx.Frame):
                 Time_C4, S_ampl_C4 = File_handle('C4Trace' + str(fileC4) + '.txt')    # Source pulsing file
         
                 # calculation of extraction time and on time
-                extraction_time, Ton, Freq = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                extraction_time, Ton, Freq = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
                 
                 # Median of the extration time
                 Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
