@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import wx
 import numpy as np
 import pandas as pd
@@ -12,10 +13,10 @@ plt.switch_backend('Agg')
 
 #%% File reader
 
-def File_handle(file):
+def File_handle(FldPth, file):
     
     # First read file
-    file = open(file, 'r')
+    file = open(FldPth + '/' + file, 'r')
     Data = file.read().split('\n')
     file.close()
     
@@ -198,7 +199,7 @@ def Write_in_excel(Data, row, worksheet):
 
 #%% Raw data plot
 
-def Raw_data_plot(fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
+def Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
     
     # Pulse figure
     peak_C2, _ = find_peaks(S_ampl_C2, prominence = pmnc)          # in C2 channel
@@ -215,12 +216,12 @@ def Raw_data_plot(fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_amp
     plt.plot( list(Time_C2[i] for i in peak_C2), list(S_ampl_C2[i] for i in peak_C2), 'or' )
     plt.plot( list(Time_C4[i] for i in peak_C4), list(S_ampl_C4[i] for i in peak_C4), 'og' )
     
-    plt.savefig('C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + '.jpg')
+    plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + '.jpg')
     plt.close()
     
 #%% Cycle plot
     
-def Cycle_plot(fileC4, fileC2, extraction_time):
+def Cycle_plot(FldPth, fileC4, fileC2, extraction_time):
 
     # Dot plot
     fig = plt.figure()
@@ -231,7 +232,7 @@ def Cycle_plot(fileC4, fileC2, extraction_time):
             plt.scatter(xAxis, item)
     
     plt.grid()
-    plt.savefig('C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'cycle.jpg')
+    plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'cycle.jpg')
     plt.close()
 
 #%% App
@@ -240,74 +241,101 @@ class FRS(wx.Frame):
 
     def __init__(self):
         wx.Frame.__init__(self, None, -1, 'Extraction time calculator', 
-                          size=(430, 600-32*2), 
+                          size=(400,568), 
                           style = wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION )
         panel = wx.Panel(self, -1)
         
+        self.FoldPath = os.getcwd()
+        
+        wx.StaticText(panel, -1, 'Browse Folder : ', pos=(10,21))
+        self.BrowsFile = wx.Button(panel, -1, 'Browse', pos=(130,16))
+        self.BrowsFile.Bind(wx.EVT_BUTTON, self.onOpenFolder)
+        
+        ln = wx.StaticLine(panel, -1, pos=(10, 10), style= wx.LI_HORIZONTAL)
+        ln.SetSize((410,100))
+        
+        #
         self.op1 = wx.RadioButton(panel, label = 'Select one file',
-                                  pos=(10, 12), style = wx.RB_GROUP)
+                                  pos=(10, 69), style = wx.RB_GROUP)
         
         # first file entry
-        wx.StaticText(panel, -1, 'File : ', pos=(10 + 30, 60))
-        self.file_op1 = wx.TextCtrl(panel, -1, '00000', pos=(100 + 30, 55))
+        wx.StaticText(panel, -1, 'File : ', pos=(40, 117))
+        self.file_op1 = wx.TextCtrl(panel, -1, '00000', pos=(110, 112))
         
         # Checkbox
-        self.cb1 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,108))
-        self.cbr1 = wx.CheckBox(panel, label = 'Raw plot', pos = (120 + 30,108))
+        self.cb1 = wx.CheckBox(panel, label = 'Save plot', pos = (40,157))
+        self.cbr1 = wx.CheckBox(panel, label = 'Raw plot', pos = (150,157))
         
-        #%% horizontal line between 1st and 2nd option
-        
-        ln = wx.StaticLine(panel, -1, pos=(10, 88), style= wx.LI_HORIZONTAL)
+        # horizontal line between 1st and 2nd option
+        ln = wx.StaticLine(panel, -1, pos=(10,136), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
         self.op2 = wx.RadioButton(panel, label = 'Ordered files',
-                                  pos = (10,148) )
+                                  pos = (10,196) )
         
         # first file entry
-        wx.StaticText(panel, -1, 'From : ', pos=(10 + 30, 228-32))
-        self.file1_op2 = wx.TextCtrl(panel, -1, '00000', pos=(100 + 30, 223-32))
+        wx.StaticText(panel, -1, 'From : ', pos=(40, 244))
+        self.file1_op2 = wx.TextCtrl(panel, -1, '00000', pos=(110,239))
         
         # last file entry
-        wx.StaticText(panel, -1, 'to : ', pos=(220 + 30, 228-32))
-        self.file2_op2 = wx.TextCtrl(panel, -1, '00000', pos=(260 + 30, 223-32))
+        wx.StaticText(panel, -1, 'to : ', pos=(230,244))
+        self.file2_op2 = wx.TextCtrl(panel, -1, '00000', pos=(270,239))
         
         # Checkbox
-        self.cb2 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,300-32*2))
-        self.cbr2 = wx.CheckBox(panel, label = 'Raw plot', pos = (120 + 30,300-32*2))
+        self.cb2 = wx.CheckBox(panel, label = 'Save plot', pos = (40,284))
+        self.cbr2 = wx.CheckBox(panel, label = 'Raw plot', pos = (150,284))
 
-        #%% horizontal line between 2nd and 3rds option
-        
-        ln = wx.StaticLine(panel, -1, pos=(10, 280-32*2), style= wx.LI_HORIZONTAL)
+        # horizontal line between 2nd and 3rds option
+        ln = wx.StaticLine(panel, -1, pos=(10,264), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
         self.op3 = wx.RadioButton(panel, label = 'Random files',
-                                  pos = (10,340-32*2) )
+                                  pos = (10,324) )
         
         # Checkbox
-        self.cb3 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,380-32*2))
-        self.cbr3 = wx.CheckBox(panel, label = 'Raw plot', pos = (120 + 30,380-32*2))
+        self.cb3 = wx.CheckBox(panel, label = 'Save plot', pos = (40,364))
+        self.cbr3 = wx.CheckBox(panel, label = 'Raw plot', pos = (150,364))
         
-        #%% horizontal line
-        ln = wx.StaticLine(panel, -1, pos=(10, 360-32*2), style= wx.LI_HORIZONTAL)
+        # horizontal line
+        ln = wx.StaticLine(panel, -1, pos=(10,344), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
         # prominence
-        wx.StaticText(panel, -1, 'Prominence : ', pos=(10, 430-32*2))
-        self.prmnc = wx.TextCtrl(panel, -1, '0.01', pos=(110, 425-32*2))
+        wx.StaticText(panel, -1, 'Prominence : ', pos=(10,419))
+        self.prmnc = wx.TextCtrl(panel, -1, '0.02', pos=(110,414))
         
-        #%% Calculate button
-        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150, 500-32*2))
+        ln = wx.StaticLine(panel, -1, pos=(10,410), style= wx.LI_HORIZONTAL)
+        ln.SetSize((410,100))
+        
+        # Calculate button
+        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150,484))
         self.CalBtn.Bind(wx.EVT_BUTTON, self.OnClick)
+
+
+    #%%
+    
+    def onOpenFolder(self, event):
         
+        dlg = wx.DirDialog (None, 'Choose input directory', '',
+                            wx.DD_DEFAULT_STYLE | wx.DD_DIR_MUST_EXIST)
+        
+        if dlg.ShowModal() == wx.ID_OK:
+            self.FoldPath = dlg.GetPath()
+        
+        dlg.Destroy()
+    
+    #%%
+    
     def OnClick(self, event):
         
         option1 = self.op1.GetValue()
         option2 = self.op2.GetValue()
         option3 = self.op3.GetValue()
         pmnc    = float(self.prmnc.GetValue())
+        FldPth  = self.FoldPath
         
         # Create a workbook and add a worksheet.
-        workbook = xlsxwriter.Workbook('Data.xlsx')
+        workbook = xlsxwriter.Workbook(FldPth + '/Data.xlsx')
         worksheet = workbook.add_worksheet()
         
         Data_columns = (['File', 'First ion (ms)', 'Mean (ms)', 'Median (ms)', 'Standard deviation (ms)', 'Extraction time (ms)', 'ON time (ms)', 'Detected frequncy (Hz)', 'Edge'])
@@ -320,8 +348,8 @@ class FRS(wx.Frame):
             # get values form all input area
             file = self.file_op1.GetValue()
             
-            Time_C2, S_ampl_C2 = File_handle('C2Trace' + file + '.txt')    # Detector signal file
-            Time_C4, S_ampl_C4 = File_handle('C4Trace' + file + '.txt')    # Source pulsing file
+            Time_C2, S_ampl_C2 = File_handle(FldPth, 'C2Trace' + file + '.txt')    # Detector signal file
+            Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + file + '.txt')    # Source pulsing file
     
             # calculation of extraction time and on time
             extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
@@ -337,10 +365,10 @@ class FRS(wx.Frame):
             Write_in_excel(Export_data, 1, worksheet)
 
             if (self.cbr1.GetValue() == True):
-                Raw_data_plot(file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                Raw_data_plot(FldPth, file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
             
             if (self.cb1.GetValue() == True):
-                Cycle_plot(file, file, extraction_time)
+                Cycle_plot(FldPth, file, file, extraction_time)
         
         #%% Second option
         
@@ -355,8 +383,8 @@ class FRS(wx.Frame):
             NextRow = 1
             for file in files:
                 
-                Time_C2, S_ampl_C2 = File_handle('C2Trace' + str(file) + '.txt')    # Detector signal file
-                Time_C4, S_ampl_C4 = File_handle('C4Trace' + str(file) + '.txt')    # Source pulsing file
+                Time_C2, S_ampl_C2 = File_handle(FldPth, 'C2Trace' + str(file) + '.txt')    # Detector signal file
+                Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(file) + '.txt')    # Source pulsing file
         
                 # calculation of extraction time and on time
                 extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
@@ -373,22 +401,22 @@ class FRS(wx.Frame):
                 NextRow = NextRow  + 1
                 
                 if (self.cbr2.GetValue() == True):
-                    Raw_data_plot(file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                    Raw_data_plot(FldPth, file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                 
                 if (self.cb2.GetValue() == True):
-                    Cycle_plot(file, file, extraction_time)
+                    Cycle_plot(FldPth, file, file, extraction_time)
         
         #%% Third option
         
         if (option3 == True):
             
-            df = pd.read_csv('ListRandom.txt', delim_whitespace = True )
+            df = pd.read_csv(FldPth + '/ListRandom.txt', delim_whitespace = True )
             
             NextRow = 1
             for fileC2, fileC4 in zip(df.C2, df.C4):
                 
-                Time_C2, S_ampl_C2 = File_handle('C2Trace' + str(fileC2) + '.txt')    # Detector signal file
-                Time_C4, S_ampl_C4 = File_handle('C4Trace' + str(fileC4) + '.txt')    # Source pulsing file
+                Time_C2, S_ampl_C2 = File_handle(FldPth, 'C2Trace' + str(fileC2) + '.txt')    # Detector signal file
+                Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(fileC4) + '.txt')    # Source pulsing file
         
                 # calculation of extraction time and on time
                 extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
@@ -405,10 +433,10 @@ class FRS(wx.Frame):
                 NextRow = NextRow  + 1
                 
                 if (self.cbr3.GetValue() == True):
-                    Raw_data_plot(fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                    Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                 
                 if (self.cb3.GetValue() == True):
-                    Cycle_plot(fileC4, fileC2, extraction_time)
+                    Cycle_plot(FldPth, fileC4, fileC2, extraction_time)
         
         # Close the excel file now
         workbook.close()
