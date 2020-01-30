@@ -179,7 +179,7 @@ class FRS(wx.Frame):
 
     def __init__(self):
         wx.Frame.__init__(self, None, -1, 'Extraction time calculator', 
-                          size=(430, 600), 
+                          size=(430, 600-32*2), 
                           style = wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION )
         panel = wx.Panel(self, -1)
         
@@ -191,51 +191,51 @@ class FRS(wx.Frame):
         self.file_op1 = wx.TextCtrl(panel, -1, '00000', pos=(100 + 30, 55))
         
         # Checkbox
-        self.cb1 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,140))
-        self.cbr1 = wx.CheckBox(panel, label = 'Raw plot', pos = (120 + 30,140))
+        self.cb1 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,108))
+        self.cbr1 = wx.CheckBox(panel, label = 'Raw plot', pos = (120 + 30,108))
         
         #%% horizontal line between 1st and 2nd option
         
-        ln = wx.StaticLine(panel, -1, pos=(10, 120), style= wx.LI_HORIZONTAL)
+        ln = wx.StaticLine(panel, -1, pos=(10, 88), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
         self.op2 = wx.RadioButton(panel, label = 'Ordered files',
-                                  pos = (10,180) )
+                                  pos = (10,148) )
         
         # first file entry
-        wx.StaticText(panel, -1, 'From : ', pos=(10 + 30, 228))
-        self.file1_op2 = wx.TextCtrl(panel, -1, '00000', pos=(100 + 30, 223))
+        wx.StaticText(panel, -1, 'From : ', pos=(10 + 30, 228-32))
+        self.file1_op2 = wx.TextCtrl(panel, -1, '00000', pos=(100 + 30, 223-32))
         
         # last file entry
-        wx.StaticText(panel, -1, 'to : ', pos=(220 + 30, 228))
-        self.file2_op2 = wx.TextCtrl(panel, -1, '00000', pos=(260 + 30, 223))
+        wx.StaticText(panel, -1, 'to : ', pos=(220 + 30, 228-32))
+        self.file2_op2 = wx.TextCtrl(panel, -1, '00000', pos=(260 + 30, 223-32))
         
         # Checkbox
-        self.cb2 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,300))
-        self.cbr2 = wx.CheckBox(panel, label = 'Raw plot', pos = (120 + 30,300))
+        self.cb2 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,300-32*2))
+        self.cbr2 = wx.CheckBox(panel, label = 'Raw plot', pos = (120 + 30,300-32*2))
 
         #%% horizontal line between 2nd and 3rds option
         
-        ln = wx.StaticLine(panel, -1, pos=(10, 280), style= wx.LI_HORIZONTAL)
+        ln = wx.StaticLine(panel, -1, pos=(10, 280-32*2), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
         self.op3 = wx.RadioButton(panel, label = 'Random files',
-                                  pos = (10,340) )
+                                  pos = (10,340-32*2) )
         
         # Checkbox
-        self.cb3 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,380))
-        self.cbr3 = wx.CheckBox(panel, label = 'Raw plot', pos = (120 + 30,380))
+        self.cb3 = wx.CheckBox(panel, label = 'Save plot', pos = (10 + 30,380-32*2))
+        self.cbr3 = wx.CheckBox(panel, label = 'Raw plot', pos = (120 + 30,380-32*2))
         
         #%% horizontal line
-        ln = wx.StaticLine(panel, -1, pos=(10, 360), style= wx.LI_HORIZONTAL)
+        ln = wx.StaticLine(panel, -1, pos=(10, 360-32*2), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
         # prominence
-        wx.StaticText(panel, -1, 'Prominence : ', pos=(10, 430))
-        self.prmnc = wx.TextCtrl(panel, -1, '0.01', pos=(110, 425))
+        wx.StaticText(panel, -1, 'Prominence : ', pos=(10, 430-32*2))
+        self.prmnc = wx.TextCtrl(panel, -1, '0.01', pos=(110, 425-32*2))
         
         #%% Calculate button
-        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150, 500))
+        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150, 500-32*2))
         self.CalBtn.Bind(wx.EVT_BUTTON, self.OnClick)
         
     def OnClick(self, event):
