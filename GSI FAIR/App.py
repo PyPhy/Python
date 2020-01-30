@@ -56,7 +56,7 @@ def File_handle(file):
 #%% Extration time function
 
 def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
-    
+
     # Newton's difference table
     diff = []
     for i in range(1, len(S_ampl_C4)):
@@ -68,56 +68,113 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
     # find delta peaks in difference table
     pks, _ = find_peaks( abs(diff), prominence=4.5)
     
-    # in real scale peaks are at pks + 1 time
-    # peaks were trigger started
-    down_peak = pks[::2] + 1
-    
-    # last edge of trigger
-    up_peak = pks[1::2]
-    
-    # starting edge
-    downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
-    
-    # ending edge
-    upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
-    
-    # Trigger on time
-    ONTime = upEdge - downEdge
-    
-    # frequency detected
-    f = []
-    for i in range(1, len(downEdge)):
-        f.append(1/ (downEdge[i] - downEdge[i-1]) )
-    
-    
-    ExtTime = []
-    
-    for epoch in range(1, len(downEdge) + 1):
+    if diff[pks[0]] < 0:
         
-        # Cycle
-        if (epoch == len(downEdge) ):
-            cycle = np.arange(down_peak[epoch - 1], len(Time_C4), 1)
-        else:
-            cycle = np.arange(down_peak[epoch - 1], down_peak[epoch] + 1, 1)
+        edge = 'fall'
+
+        # in real scale peaks are at pks + 1 time
+        # peaks were trigger started
+        down_peak = pks[::2] + 1
+        
+        # last edge of trigger
+        up_peak = pks[1::2]
+        
+        # starting edge
+        downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
+        
+        # ending edge
+        upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
+        
+        # Trigger on time
+        ONTime = upEdge - downEdge
+        
+        # frequency detected
+        f = []
+        for i in range(1, len(downEdge)):
+            f.append(1/ (downEdge[i] - downEdge[i-1]) )
         
         
-        # Now corresponding cycle in C2 could be found as
-        tsmpl2 = list(Time_C2[i] for i in cycle)
-        ssmpl2 = list(S_ampl_C2[i] for i in cycle)
+        ExtTime = []
         
-        # signal detection in C2 channel
-        peksmpl2, _ = find_peaks(ssmpl2, prominence = pmnc)
+        for epoch in range(1, len(downEdge) + 1):
+            
+            # Cycle
+            if (epoch == len(downEdge) ):
+                cycle = np.arange(down_peak[epoch - 1], len(Time_C4), 1)
+            else:
+                cycle = np.arange(down_peak[epoch - 1], down_peak[epoch] + 1, 1)
+            
+            
+            # Now corresponding cycle in C2 could be found as
+            tsmpl2 = list(Time_C2[i] for i in cycle)
+            ssmpl2 = list(S_ampl_C2[i] for i in cycle)
+            
+            # signal detection in C2 channel
+            peksmpl2, _ = find_peaks(ssmpl2, prominence = pmnc)
+            
+            # time when signal detecting in channel C2
+            tdect = list(tsmpl2[i] for i in peksmpl2)
+            
+            dt = []
+            if len(tdect):
+                dt = tdect - Time_C4[cycle[0]]
         
-        # time when signal detecting in channel C2
-        tdect = list(tsmpl2[i] for i in peksmpl2)
-        
-        dt = []
-        if len(tdect):
-            dt = tdect - Time_C4[cycle[0]]
+            ExtTime.append(dt)
     
-        ExtTime.append(dt)
+    else:
+        
+        edge = 'up'
+        
+        # in real scale peaks are at pks + 1 time
+        # peaks were trigger started
+        up_peak = pks[::2] + 1
+        
+        # last edge of trigger
+        down_peak = pks[1::2]
+        
+        # starting edge
+        upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
+        
+        # ending edge
+        downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
+        
+        # Trigger on time
+        ONTime = downEdge - upEdge
+        
+        # frequency detected
+        f = []
+        for i in range(1, len(upEdge)):
+            f.append(1/ (upEdge[i] - upEdge[i-1]) )
+            
+            
+        ExtTime = []
+        
+        for epoch in range(1, len(upEdge) + 1):
+            
+            # Cycle
+            if (epoch == len(upEdge) ):
+                cycle = np.arange(up_peak[epoch - 1], len(Time_C4), 1)
+            else:
+                cycle = np.arange(up_peak[epoch - 1], up_peak[epoch] + 1, 1)
+            
+            
+            # Now corresponding cycle in C2 could be found as
+            tsmpl2 = list(Time_C2[i] for i in cycle)
+            ssmpl2 = list(S_ampl_C2[i] for i in cycle)
+            
+            # signal detection in C2 channel
+            peksmpl2, _ = find_peaks(ssmpl2, prominence = pmnc)
+            
+            # time when signal detecting in channel C2
+            tdect = list(tsmpl2[i] for i in peksmpl2)
+            
+            dt = []
+            if len(tdect):
+                dt = tdect - Time_C4[cycle[0]]
+        
+            ExtTime.append(dt)
     
-    return ExtTime, ONTime, f
+    return ExtTime, ONTime, f, edge
 
 #%% Median
     
@@ -141,11 +198,15 @@ def Write_in_excel(Data, row, worksheet):
 
 #%% Raw data plot
 
-def Raw_data_plot(fileC4, fileC2, pmnc, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
+def Raw_data_plot(fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
     
     # Pulse figure
     peak_C2, _ = find_peaks(S_ampl_C2, prominence = pmnc)          # in C2 channel
-    peak_C4, _ = find_peaks(5-np.array(S_ampl_C4), prominence=4.5) # in C4 channel
+    
+    if edge == 'fall':
+        peak_C4, _ = find_peaks(5-np.array(S_ampl_C4), prominence=4.5) # in C4 channel
+    else:
+        peak_C4, _ = find_peaks(np.array(S_ampl_C4), prominence=4.5)
     
     plt.plot(Time_C2, S_ampl_C2)
     plt.plot(Time_C4, S_ampl_C4)
@@ -263,7 +324,7 @@ class FRS(wx.Frame):
             Time_C4, S_ampl_C4 = File_handle('C4Trace' + file + '.txt')    # Source pulsing file
     
             # calculation of extraction time and on time
-            extraction_time, Ton, Freq = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+            extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
             
             # Median of the extration time
             Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
@@ -272,11 +333,11 @@ class FRS(wx.Frame):
             Textr = Tmedian - np.average(Ton)/2
             
             # write it in a xl file
-            Export_data = [file, Tmin* 1000, Tmean* 1000, Tmedian* 1000, Tstd*1000, Textr* 1000, np.average(Ton)*1000, np.average(Freq), 'falling']
+            Export_data = [file, Tmin* 1000, Tmean* 1000, Tmedian* 1000, Tstd*1000, Textr* 1000, np.average(Ton)*1000, np.average(Freq), edge]
             Write_in_excel(Export_data, 1, worksheet)
 
             if (self.cbr1.GetValue() == True):
-                Raw_data_plot(file, file, pmnc, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                Raw_data_plot(file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
             
             if (self.cb1.GetValue() == True):
                 Cycle_plot(file, file, extraction_time)
@@ -298,7 +359,7 @@ class FRS(wx.Frame):
                 Time_C4, S_ampl_C4 = File_handle('C4Trace' + str(file) + '.txt')    # Source pulsing file
         
                 # calculation of extraction time and on time
-                extraction_time, Ton, Freq = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
                 
                 # Median of the extration time
                 Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
@@ -307,12 +368,12 @@ class FRS(wx.Frame):
                 Textr = Tmedian - np.average(Ton)/2
                 
                 # write it in a xl file
-                Export_data = [file, Tmin* 1000, Tmean* 1000, Tmedian* 1000, Tstd*1000, Textr* 1000, np.average(Ton)*1000, np.average(Freq), 'falling']
+                Export_data = [file, Tmin* 1000, Tmean* 1000, Tmedian* 1000, Tstd*1000, Textr* 1000, np.average(Ton)*1000, np.average(Freq), edge]
                 Write_in_excel(Export_data, NextRow, worksheet)
                 NextRow = NextRow  + 1
                 
                 if (self.cbr2.GetValue() == True):
-                    Raw_data_plot(file, file, pmnc, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                    Raw_data_plot(file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                 
                 if (self.cb2.GetValue() == True):
                     Cycle_plot(file, file, extraction_time)
@@ -330,7 +391,7 @@ class FRS(wx.Frame):
                 Time_C4, S_ampl_C4 = File_handle('C4Trace' + str(fileC4) + '.txt')    # Source pulsing file
         
                 # calculation of extraction time and on time
-                extraction_time, Ton, Freq = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
                 
                 # Median of the extration time
                 Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
@@ -339,12 +400,12 @@ class FRS(wx.Frame):
                 Textr = Tmedian - np.average(Ton)/2
                 
                 # write it in a xl file
-                Export_data = [file, Tmin* 1000, Tmean* 1000, Tmedian* 1000, Tstd*1000, Textr* 1000, np.average(Ton)*1000, np.average(Freq), 'falling']
+                Export_data = [file, Tmin* 1000, Tmean* 1000, Tmedian* 1000, Tstd*1000, Textr* 1000, np.average(Ton)*1000, np.average(Freq), edge]
                 Write_in_excel(Export_data, NextRow, worksheet)
                 NextRow = NextRow  + 1
                 
                 if (self.cbr3.GetValue() == True):
-                    Raw_data_plot(fileC4, fileC2, pmnc, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                    Raw_data_plot(fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                 
                 if (self.cb3.GetValue() == True):
                     Cycle_plot(fileC4, fileC2, extraction_time)
