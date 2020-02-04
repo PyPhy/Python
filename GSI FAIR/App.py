@@ -346,7 +346,7 @@ class FRS(wx.Frame):
         workbook = xlsxwriter.Workbook(FldPth + '/Data.xlsx')
         worksheet = workbook.add_worksheet()
         
-        Data_columns = (['File', 'First ion (ms)', 'Mean (ms)', 'Median (ms)', \
+        Data_columns = (['File C2', 'File C4', 'First ion (ms)', 'Mean (ms)', 'Median (ms)', \
                          'Standard deviation (ms)', 'Extraction time (ms)', \
                          'ON time (ms)', 'Detected frequncy (Hz)', 'Edge', \
                          'Voltage (volt)', 'Temperature (K)', 'Pressure (units)'])
@@ -356,31 +356,46 @@ class FRS(wx.Frame):
         
         if (option1 == True):
             
-            # get values form all input area
-            file = self.file_op1.GetValue()
-            
-            Time_C2, S_ampl_C2 = File_handle(FldPth, 'C2Trace' + file + '.txt')    # Detector signal file
-            Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + file + '.txt')    # Source pulsing file
+            try:      
+                # get values form all input area
+                file = self.file_op1.GetValue()
     
-            # calculation of extraction time and on time
-            extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
-            
-            # Median of the extration time
-            Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
-            
-            # Real extrection time
-            Textr = Tmedian - np.average(Ton)/2
-            
-            # write it in a xl file
-            Export_data = [file, Tmin* 1000, Tmean* 1000, Tmedian* 1000, Tstd*1000, Textr* 1000, np.average(Ton)*1000, np.average(Freq), edge]
-            Write_in_excel(Export_data, 1, worksheet)
-
-            if (self.cbr1.GetValue() == True):
-                Raw_data_plot(FldPth, file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
-            
-            if (self.cb1.GetValue() == True):
-                Cycle_plot(FldPth, file, file, extraction_time)
+                Time_C2, S_ampl_C2 = File_handle(FldPth, 'C2Trace' + file + '.txt')    # Detector signal file
+                Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + file + '.txt')    # Source pulsing file
         
+                # calculation of extraction time and on time
+                extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                
+                # Median of the extration time
+                Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
+                
+                # Real extrection time
+                Textr = Tmedian - np.average(Ton)/2
+                
+                # write it in a xl file
+                Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
+                               Tmedian* 1000, Tstd*1000, Textr* 1000, \
+                               np.average(Ton)*1000, np.average(Freq), edge]
+                Write_in_excel(Export_data, 1, worksheet)
+    
+                if (self.cbr1.GetValue() == True):
+                    Raw_data_plot(FldPth, file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                
+                if (self.cb1.GetValue() == True):
+                    Cycle_plot(FldPth, file, file, extraction_time)
+                    
+                # Close the excel file now
+                workbook.close()
+                
+                # close the window on the completion of calculation
+                self.Close()
+            
+            except FileNotFoundError:
+                
+                wx.MessageBox('No file named C2Trace' + file + '.txt or ' + \
+                              'C4Trace' + file + '.txt in a given path... \n \n' \
+                              + FldPth, 'File Not Found')
+                
         #%% Second option
         
         if (option2 == True):
@@ -389,71 +404,99 @@ class FRS(wx.Frame):
             frst_file = self.file1_op2.GetValue()
             last_file = self.file2_op2.GetValue()
                      
-            files = [f"{i:05}" for i in range(int(frst_file), int(last_file) + 1)]
+            files = [f'{i:05}' for i in range(int(frst_file), int(last_file) + 1)]
             
-            NextRow = 1
-            for file in files:
+            try:
+                NextRow = 1
+                for file in files:
+                    
+                    Time_C2, S_ampl_C2 = File_handle(FldPth, 'C2Trace' + str(file) + '.txt')    # Detector signal file
+                    Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(file) + '.txt')    # Source pulsing file
+            
+                    # calculation of extraction time and on time
+                    extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                    
+                    # Median of the extration time
+                    Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
+                    
+                    # Real extrection time
+                    Textr = Tmedian - np.average(Ton)/2
+                    
+                    # write it in a xl file
+                    Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
+                                   Tmedian* 1000, Tstd*1000, Textr* 1000, \
+                                   np.average(Ton)*1000, np.average(Freq), edge]
+                    Write_in_excel(Export_data, NextRow, worksheet)
+                    NextRow = NextRow  + 1
+                    
+                    if (self.cbr2.GetValue() == True):
+                        Raw_data_plot(FldPth, file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                    
+                    if (self.cb2.GetValue() == True):
+                        Cycle_plot(FldPth, file, file, extraction_time)
+    
+                # Close the excel file now
+                workbook.close()
                 
-                Time_C2, S_ampl_C2 = File_handle(FldPth, 'C2Trace' + str(file) + '.txt')    # Detector signal file
-                Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(file) + '.txt')    # Source pulsing file
-        
-                # calculation of extraction time and on time
-                extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                # close the window on the completion of calculation
+                self.Close()
+            
+            except FileNotFoundError:
                 
-                # Median of the extration time
-                Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
-                
-                # Real extrection time
-                Textr = Tmedian - np.average(Ton)/2
-                
-                # write it in a xl file
-                Export_data = [file, Tmin* 1000, Tmean* 1000, Tmedian* 1000, Tstd*1000, Textr* 1000, np.average(Ton)*1000, np.average(Freq), edge]
-                Write_in_excel(Export_data, NextRow, worksheet)
-                NextRow = NextRow  + 1
-                
-                if (self.cbr2.GetValue() == True):
-                    Raw_data_plot(FldPth, file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
-                
-                if (self.cb2.GetValue() == True):
-                    Cycle_plot(FldPth, file, file, extraction_time)
-        
+                wx.MessageBox('No file named C2Trace' + file + '.txt or ' + \
+                              'C4Trace' + file + '.txt in a given path... \n \n' \
+                              + FldPth, 'File Not Found')
+
+            
         #%% Third option
         
         if (option3 == True):
             
             df = pd.read_csv(FldPth + '/ListRandom.txt', delim_whitespace = True )
             
-            NextRow = 1
-            for fileC2, fileC4 in zip(df.C2, df.C4):
+            try:
+                NextRow = 1
+                for fileC2, fileC4 in zip(df.C2, df.C4):
+                    
+                    fileC2 = f'{fileC2:05}'
+                    fileC4 = f'{fileC4:05}'
+                    
+                    Time_C2, S_ampl_C2 = File_handle(FldPth, 'C2Trace' + str(fileC2) + '.txt')    # Detector signal file
+                    Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(fileC4) + '.txt')    # Source pulsing file
+            
+                    # calculation of extraction time and on time
+                    extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                    
+                    # Median of the extration time
+                    Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
+                    
+                    # Real extrection time
+                    Textr = Tmedian - np.average(Ton)/2
+                    
+                    # write it in a xl file
+                    Export_data = [fileC2, fileC4, Tmin* 1000, Tmean* 1000, \
+                                   Tmedian* 1000, Tstd*1000, Textr* 1000, \
+                                   np.average(Ton)*1000, np.average(Freq), edge]
+                    Write_in_excel(Export_data, NextRow, worksheet)
+                    NextRow = NextRow  + 1
+                    
+                    if (self.cbr3.GetValue() == True):
+                        Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                    
+                    if (self.cb3.GetValue() == True):
+                        Cycle_plot(FldPth, fileC4, fileC2, extraction_time)
+    
+                # Close the excel file now
+                workbook.close()
                 
-                Time_C2, S_ampl_C2 = File_handle(FldPth, 'C2Trace' + str(fileC2) + '.txt')    # Detector signal file
-                Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(fileC4) + '.txt')    # Source pulsing file
-        
-                # calculation of extraction time and on time
-                extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                # close the window on the completion of calculation
+                self.Close()
+
+            except FileNotFoundError:
                 
-                # Median of the extration time
-                Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
-                
-                # Real extrection time
-                Textr = Tmedian - np.average(Ton)/2
-                
-                # write it in a xl file
-                Export_data = [file, Tmin* 1000, Tmean* 1000, Tmedian* 1000, Tstd*1000, Textr* 1000, np.average(Ton)*1000, np.average(Freq), edge]
-                Write_in_excel(Export_data, NextRow, worksheet)
-                NextRow = NextRow  + 1
-                
-                if (self.cbr3.GetValue() == True):
-                    Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
-                
-                if (self.cb3.GetValue() == True):
-                    Cycle_plot(FldPth, fileC4, fileC2, extraction_time)
-        
-        # Close the excel file now
-        workbook.close()
-        
-        # close the window on the completion of calculation
-        self.Close()
+                wx.MessageBox('No file named C2Trace' + str(fileC2) + '.txt or ' \
+                              + 'C4Trace' + str(fileC4) + '.txt in a given path... \n \n'\
+                              + FldPth, 'File Not Found')
 
 #%%
 
