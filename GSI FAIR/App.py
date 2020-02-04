@@ -80,6 +80,10 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
         # last edge of trigger
         up_peak = pks[1::2]
         
+        # Now check if data ends with fall, if yes ignore the last pulse
+        if len(down_peak) > len(up_peak):
+            down_peak = down_peak[:-1:]
+        
         # starting edge
         downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
         
@@ -132,6 +136,10 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
         
         # last edge of trigger
         down_peak = pks[1::2]
+        
+        # Now check if data ends with up pulse, if yes ignore the last pulse
+        if len(up_peak) > len(down_peak):
+            up_peak = up_peak[:-1:]
         
         # starting edge
         upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
@@ -338,7 +346,10 @@ class FRS(wx.Frame):
         workbook = xlsxwriter.Workbook(FldPth + '/Data.xlsx')
         worksheet = workbook.add_worksheet()
         
-        Data_columns = (['File', 'First ion (ms)', 'Mean (ms)', 'Median (ms)', 'Standard deviation (ms)', 'Extraction time (ms)', 'ON time (ms)', 'Detected frequncy (Hz)', 'Edge'])
+        Data_columns = (['File', 'First ion (ms)', 'Mean (ms)', 'Median (ms)', \
+                         'Standard deviation (ms)', 'Extraction time (ms)', \
+                         'ON time (ms)', 'Detected frequncy (Hz)', 'Edge', \
+                         'Voltage (volt)', 'Temperature (K)', 'Pressure (units)'])
         Write_in_excel(Data_columns, 0, worksheet)
         
         #%% First option
