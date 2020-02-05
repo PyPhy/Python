@@ -319,6 +319,10 @@ class FRS(wx.Frame):
         self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150,484))
         self.CalBtn.Bind(wx.EVT_BUTTON, self.OnClick)
 
+        # Setup
+        Icon_Path = os.path.abspath('divsys.png')
+        icon = wx.Icon(Icon_Path, wx.BITMAP_TYPE_PNG)
+        self.SetIcon(icon)
 
     #%%
     
@@ -407,6 +411,11 @@ class FRS(wx.Frame):
             files = [f'{i:05}' for i in range(int(frst_file), int(last_file) + 1)]
             
             try:
+                progressMax = len(files)
+                
+                dialog = wx.ProgressDialog('A progress box', 'Processing file...', progressMax,
+                                           style = wx.PD_ELAPSED_TIME)
+                
                 NextRow = 1
                 for file in files:
                     
@@ -427,14 +436,19 @@ class FRS(wx.Frame):
                                    Tmedian* 1000, Tstd*1000, Textr* 1000, \
                                    np.average(Ton)*1000, np.average(Freq), edge]
                     Write_in_excel(Export_data, NextRow, worksheet)
-                    NextRow = NextRow  + 1
                     
                     if (self.cbr2.GetValue() == True):
                         Raw_data_plot(FldPth, file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                     
                     if (self.cb2.GetValue() == True):
                         Cycle_plot(FldPth, file, file, extraction_time)
-    
+                    
+                    dialog.Update(NextRow, 'Processing: C2Trace' + str(file) + ' and C4Trace' + str(file) )
+                    NextRow = NextRow  + 1
+                
+                # Close the progress bar
+                dialog.Destroy()
+                
                 # Close the excel file now
                 workbook.close()
                 
@@ -455,6 +469,12 @@ class FRS(wx.Frame):
             df = pd.read_csv(FldPth + '/ListRandom.txt', delim_whitespace = True )
             
             try:
+                
+                progressMax = len(df.C2)
+                
+                dialog = wx.ProgressDialog('A progress box', 'Processing file...', progressMax,
+                                           style = wx.PD_ELAPSED_TIME)
+                
                 NextRow = 1
                 for fileC2, fileC4 in zip(df.C2, df.C4):
                     
@@ -478,14 +498,19 @@ class FRS(wx.Frame):
                                    Tmedian* 1000, Tstd*1000, Textr* 1000, \
                                    np.average(Ton)*1000, np.average(Freq), edge]
                     Write_in_excel(Export_data, NextRow, worksheet)
-                    NextRow = NextRow  + 1
                     
                     if (self.cbr3.GetValue() == True):
                         Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                     
                     if (self.cb3.GetValue() == True):
                         Cycle_plot(FldPth, fileC4, fileC2, extraction_time)
-    
+
+                    dialog.Update(NextRow, 'Processing: C2Trace' + str(fileC2) + ' and C4Trace' + str(fileC4) )
+                    NextRow = NextRow  + 1
+
+                # Close the progress bar
+                dialog.Destroy()
+
                 # Close the excel file now
                 workbook.close()
                 
