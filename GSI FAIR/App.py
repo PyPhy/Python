@@ -67,7 +67,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
     diff = np.around( np.array(diff) )
     
     # find delta peaks in difference table
-    pks, _ = find_peaks( abs(diff), prominence=4.5)
+    pks, _ = find_peaks( abs(diff), height=4.5)
     
     if diff[pks[0]] < 0:
         
@@ -78,7 +78,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
         down_peak = pks[::2] + 1
         
         # last edge of trigger
-        up_peak = pks[1::2]
+        up_peak = pks[1::2] + 1
         
         # Now check if data ends with fall, if yes ignore the last pulse
         if len(down_peak) > len(up_peak):
@@ -115,7 +115,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
             ssmpl2 = list(S_ampl_C2[i] for i in cycle)
             
             # signal detection in C2 channel
-            peksmpl2, _ = find_peaks(ssmpl2, prominence = pmnc)
+            peksmpl2, _ = find_peaks(ssmpl2, height = pmnc)
             
             # time when signal detecting in channel C2
             tdect = list(tsmpl2[i] for i in peksmpl2)
@@ -135,7 +135,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
         up_peak = pks[::2] + 1
         
         # last edge of trigger
-        down_peak = pks[1::2]
+        down_peak = pks[1::2] + 1
         
         # Now check if data ends with up pulse, if yes ignore the last pulse
         if len(up_peak) > len(down_peak):
@@ -155,7 +155,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
         for i in range(1, len(upEdge)):
             f.append(1/ (upEdge[i] - upEdge[i-1]) )
             
-            
+        
         ExtTime = []
         
         for epoch in range(1, len(upEdge) + 1):
@@ -172,7 +172,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
             ssmpl2 = list(S_ampl_C2[i] for i in cycle)
             
             # signal detection in C2 channel
-            peksmpl2, _ = find_peaks(ssmpl2, prominence = pmnc)
+            peksmpl2, _ = find_peaks(ssmpl2, height = pmnc)
             
             # time when signal detecting in channel C2
             tdect = list(tsmpl2[i] for i in peksmpl2)
@@ -210,19 +210,22 @@ def Write_in_excel(Data, row, worksheet):
 def Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
     
     # Pulse figure
-    peak_C2, _ = find_peaks(S_ampl_C2, prominence = pmnc)          # in C2 channel
+    peak_C2, _ = find_peaks(S_ampl_C2, height = pmnc)          # in C2 channel
     
     if edge == 'fall':
-        peak_C4, _ = find_peaks(5-np.array(S_ampl_C4), prominence=4.5) # in C4 channel
+        peak_C4, _ = find_peaks(5-np.array(S_ampl_C4), height=4.5) # in C4 channel
     else:
-        peak_C4, _ = find_peaks(np.array(S_ampl_C4), prominence=4.5)
+        peak_C4, _ = find_peaks(np.array(S_ampl_C4), height=4.5)
     
-    plt.plot(Time_C2, S_ampl_C2)
-    plt.plot(Time_C4, S_ampl_C4)
-    
+    plt.plot(Time_C2, S_ampl_C2, label = 'C2 channel')
+    plt.plot(Time_C4, S_ampl_C4, label = 'C4 channel')
+
     # plot the dot on the peak
     plt.plot( list(Time_C2[i] for i in peak_C2), list(S_ampl_C2[i] for i in peak_C2), 'or' )
     plt.plot( list(Time_C4[i] for i in peak_C4), list(S_ampl_C4[i] for i in peak_C4), 'og' )
+    plt.xlabel('Time (s)', fontsize = 14)
+    plt.ylabel('Voltage (V)', fontsize = 14)
+    plt.legend()
     
     plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + '.jpg')
     plt.close()
@@ -232,13 +235,16 @@ def Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C
 def Cycle_plot(FldPth, fileC4, fileC2, extraction_time):
 
     # Dot plot
-    fig = plt.figure()
+    plt.figure()
 
     for i, item in enumerate(extraction_time):
         if len(item) > 0:
             xAxis = [i+1]* len(item)
-            plt.scatter(xAxis, item)
+            plt.scatter(xAxis, item* 1000, alpha = 0.4, color = 'k')
     
+    plt.xticks( np.arange(1, xAxis[0] + 1, 1) )
+    plt.xlabel('Cycles', fontsize = 14)
+    plt.ylabel('Extraction time (per cycle) (ms)', fontsize = 14)
     plt.grid()
     plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'cycle.jpg')
     plt.close()
@@ -308,9 +314,10 @@ class FRS(wx.Frame):
         ln = wx.StaticLine(panel, -1, pos=(10,344), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
-        # prominence
-        wx.StaticText(panel, -1, 'Prominence : ', pos=(10,419))
-        self.prmnc = wx.TextCtrl(panel, -1, '0.02', pos=(110,414))
+        # height
+        wx.StaticText(panel, -1, 'Height : ', pos=(10,419))
+        self.prmnc = wx.TextCtrl(panel, -1, '20', pos=(110,414))
+        wx.StaticText(panel, -1, '(mV)', pos=(215,419))
         
         ln = wx.StaticLine(panel, -1, pos=(10,410), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
@@ -343,7 +350,7 @@ class FRS(wx.Frame):
         option1 = self.op1.GetValue()
         option2 = self.op2.GetValue()
         option3 = self.op3.GetValue()
-        pmnc    = float(self.prmnc.GetValue())
+        pmnc    = float(self.prmnc.GetValue())* 1e-3
         FldPth  = self.FoldPath
         
         # Create a workbook and add a worksheet.
@@ -376,7 +383,7 @@ class FRS(wx.Frame):
                 # Real extrection time
                 Textr = Tmedian - np.average(Ton)/2
                 
-                # write it in a xl file
+                # write it in a excel file
                 Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
                                Tmedian* 1000, Tstd*1000, Textr* 1000, \
                                np.average(Ton)*1000, np.average(Freq), edge]
@@ -387,7 +394,7 @@ class FRS(wx.Frame):
                 
                 if (self.cb1.GetValue() == True):
                     Cycle_plot(FldPth, file, file, extraction_time)
-                    
+                
                 # Close the excel file now
                 workbook.close()
                 
