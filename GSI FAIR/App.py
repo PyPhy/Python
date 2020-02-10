@@ -188,22 +188,26 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
 
 #%% Median
     
-def Stat_time(ext_time, Ton):
+def Stat_time(row_time, Ton):
     
     flat_list = []
-    for sublist in ext_time:
+    for sublist in row_time:
         for item in sublist:
             flat_list.append(item)
     
+    # extraction time
+    ext_list = np.array(flat_list) - Ton/2
+    
+    # for scatter plot
     Text_plot = []
-    for i in ext_time:
+    for i in row_time:
         
         if not(len(i)) == False:
             Text_plot.append( list(np.array(i) - Ton/2) )
         else:
             Text_plot.append([])
     
-    return min(flat_list), np.mean(flat_list), np.median(flat_list), np.std(flat_list), Text_plot, flat_list
+    return min(ext_list), np.mean(ext_list), np.median(ext_list), np.std(ext_list), Text_plot, ext_list
 
 #%% write in excel file
  
@@ -217,6 +221,8 @@ def Write_in_excel(Data, row, worksheet):
 #%% Raw data plot
 
 def Raw_data_plot(FldPth, fileC4, fileC2, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
+    
+    plt.figure(figsize=(20, 10))
     
     # Pulse figure
     peak_C2 = Detect_Peak(method, S_ampl_C2, pek_mag)          # in C2 channel
@@ -241,10 +247,10 @@ def Raw_data_plot(FldPth, fileC4, fileC2, pek_mag, method, edge, Time_C2, S_ampl
     
 #%% Cycle plot
     
-def Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd):
+def Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd, Ton):
 
     # Dot plot
-    plt.figure()
+    plt.figure(figsize=(20, 10))
 
     for i, item in enumerate(Text_plot):
         if len(item) > 0:
@@ -252,33 +258,38 @@ def Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd):
             # things are in milli seconds now
             plt.scatter(xAxis, np.array(item)* 1000, alpha = 0.4, color = 'k')
     
-    plt.plot([1, xAxis[0]], [Tmedian*1000]*2, 'r', label = 'median(T) = ' + str( round(Tmedian*1000) ) )
-    plt.plot([1, xAxis[0]], [(Tmedian + Tstd)*1000]*2, 'g', label = 'STD(T) up = ' + str( round((Tmedian + Tstd)*1000) ) )
-    plt.plot([1, xAxis[0]], [(Tmedian - Tstd)*1000]*2, 'k', label = 'STD(T) down = ' + str( round((Tmedian - Tstd)*1000) ) )
+    plt.plot([1, xAxis[0]], [Tmedian*1000]*2, 'r', label = 'median(Text) = ' + str( round(Tmedian*1000) ) )
+    plt.plot([1, xAxis[0]], [(Tmedian + Tstd)*1000]*2, 'g', label = 'STD(Text) (up) = ' + str( round((Tmedian + Tstd)*1000) ) )
+    plt.plot([1, xAxis[0]], [(Tmedian - Tstd)*1000]*2, 'k', label = 'STD(Text) (down) = ' + str( round((Tmedian - Tstd)*1000) ) )
     
     plt.legend()
     plt.xticks( np.arange(1, xAxis[0] + 1, 1) )
     plt.xlabel('Cycles', fontsize = 14)
-    plt.ylabel('Textraction = T - Ton/2 (ms)', fontsize = 14)
+    plt.ylabel('Textraction (ms)', fontsize = 14)
     plt.grid()
     plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'cycle.jpg')
     plt.close()
 
 #%% Histogram plot
     
-def Histogram_Plot(FldPth, fileC4, fileC2, flat_list):
+def Histogram_Plot(FldPth, fileC4, fileC2, Flat_formula_list, Tmedian, Tstd, Ton):
+    
+    # in Text_plot, Ton is subtracted. which is according to the formulae
     
     plt.figure(figsize=(20, 10))
     
-    Data = np.array(flat_list)* 1000
+    Data = np.array(Flat_formula_list)* 1000
     plt.hist(Data, bins=np.arange(min(Data), max(Data) + 20, 20)) # 20 ms is the width of bin
     
     # things for ticks
-    flat_ext_time = np.sort( np.around( np.array(flat_list)* 1000 ) )
+    flat_ext_time = np.sort( np.around( np.array(Flat_formula_list)* 1000 ) )
     rep = Counter(flat_ext_time)
     plt.xticks( list(rep.keys()) )
     plt.yticks( np.arange(0, max(rep.values()) + 1, 1) )
     
+    plt.title('median(Text) = ' + str( round(Tmedian*1000, 2)) + ' (ms), STD(Text) = ' + str( round(Tstd*1000, 2)) + ' (ms), Ton = ' + str( round(Ton*1000, 2)) + ' (ms)', fontweight = 'bold', fontsize = 16)
+    plt.xlabel('Textaction (ms)', fontsize = 14)
+    plt.ylabel('Counts', fontsize = 14)
     plt.grid()
     plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'hist.jpg')
     plt.close()
@@ -302,7 +313,7 @@ class FRS(wx.Frame):
 
     def __init__(self):
         wx.Frame.__init__(self, None, -1, 'Extraction time calculator', 
-                          size=(400,630), 
+                          size=(400,690), 
                           style = wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION )
         panel  = wx.Panel(self, -1)
         
@@ -389,8 +400,14 @@ class FRS(wx.Frame):
         ln = wx.StaticLine(panel, -1, pos=(10,490), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
+        # Master merger
+        self.MasterMerge = wx.CheckBox(panel, label = 'Master Merger Tool \nHelpful when statistics are low', pos = (10,550))
+
+        ln = wx.StaticLine(panel, -1, pos=(10,545), style= wx.LI_HORIZONTAL)
+        ln.SetSize((410,100))
+        
         # Calculate button
-        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150,555))
+        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150,610))
         self.CalBtn.Bind(wx.EVT_BUTTON, self.OnClick)
 
         # Setup
@@ -418,6 +435,7 @@ class FRS(wx.Frame):
         option2 = self.op2.GetValue()
         option3 = self.op3.GetValue()
         FldPth  = self.FoldPath
+        MasterMerger = self.MasterMerge.GetValue()
         
         # peak detection method
         if (self.Peak_op1.GetValue() == True):
@@ -432,14 +450,14 @@ class FRS(wx.Frame):
             method  = 'threshold'
             pek_mag = float(self.thrsld.GetValue())* 1e-3
             
-            
+        
         # Create a workbook and add a worksheet.
         workbook = xlsxwriter.Workbook(FldPth + '/Data.xlsx')
         worksheet = workbook.add_worksheet()
         
         Data_columns = (['File C2', 'File C4', 'First ion (ms)', 'Mean (ms)', 'Median (ms)', \
-                         'Standard deviation (ms)', 'Extraction time (ms)', \
-                         'ON time (ms)', 'Detected frequncy (Hz)', 'Edge', \
+                         'Standard deviation (ms)', 'ON time (ms)', \
+                         'Detected frequncy (Hz)', 'Edge', \
                          'Voltage (mV)', 'Temperature (K)', 'Pressure (mbar)'])
         Write_in_excel(Data_columns, 0, worksheet)
         
@@ -455,19 +473,16 @@ class FRS(wx.Frame):
                 Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + file + '.txt')    # Source pulsing file
         
                 # calculation of extraction time and on time
-                extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
+                Row_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
                 
                 Ton = np.average(Ton)
                 
                 # Median of the extration time
-                Tmin, Tmean, Tmedian, Tstd, Text_plot, flat_list = Stat_time(extraction_time, Ton)
-                
-                # Real extrection time
-                Textr = Tmedian - Ton/2
+                Tmin, Tmean, Tmedian, Tstd, Text_plot, Flat_formula_list = Stat_time(Row_time, Ton)
                 
                 # write it in a excel file
                 Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
-                               Tmedian* 1000, Tstd*1000, Textr* 1000, \
+                               Tmedian* 1000, Tstd*1000, \
                                Ton*1000, np.average(Freq), edge]
                 Write_in_excel(Export_data, 1, worksheet)
     
@@ -475,10 +490,10 @@ class FRS(wx.Frame):
                     Raw_data_plot(FldPth, file, file, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                 
                 if (self.cb1.GetValue() == True):
-                    Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd)
+                    Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
                     
                 if (self.cbh1.GetValue() == True):
-                    Histogram_Plot(FldPth, file, file, flat_list)
+                    Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
                 
                 # Close the excel file now
                 workbook.close()
@@ -508,6 +523,8 @@ class FRS(wx.Frame):
                 dialog = wx.ProgressDialog('A progress box', 'Processing file...', progressMax,
                                            style = wx.PD_ELAPSED_TIME)
                 
+                Master_Extr_List = []
+                
                 NextRow = 1
                 for file in files:
                     
@@ -515,34 +532,58 @@ class FRS(wx.Frame):
                     Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(file) + '.txt')    # Source pulsing file
             
                     # calculation of extraction time and on time
-                    extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
+                    Row_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
                     
                     Ton = np.average(Ton)
                     
-                    # Median of the extration time
-                    Tmin, Tmean, Tmedian, Tstd, Text_plot, flat_list = Stat_time(extraction_time, Ton)
+                    if (MasterMerger != True):
+                        
+                        # Median of the extration time
+                        Tmin, Tmean, Tmedian, Tstd, Text_plot, Flat_formula_list = Stat_time(Row_time, Ton)
+                                                
+                        # write it in a xl file
+                        Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
+                                       Tmedian* 1000, Tstd*1000, \
+                                       Ton*1000, np.average(Freq), edge]
+                        Write_in_excel(Export_data, NextRow, worksheet)
+                        
+                        if (self.cbr2.GetValue() == True):
+                            Raw_data_plot(FldPth, file, file, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                        
+                        if (self.cb2.GetValue() == True):
+                            Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
+    
+                        if (self.cbh2.GetValue() == True):
+                            Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
                     
-                    # Real extrection time
-                    Textr = Tmedian - Ton/2
+                    else:
+                        
+                        for timings in Row_time:
+                            Master_Extr_List.append(timings)
                     
-                    # write it in a xl file
-                    Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
-                                   Tmedian* 1000, Tstd*1000, Textr* 1000, \
-                                   Ton*1000, np.average(Freq), edge]
-                    Write_in_excel(Export_data, NextRow, worksheet)
-                    
-                    if (self.cbr2.GetValue() == True):
-                        Raw_data_plot(FldPth, file, file, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
-                    
-                    if (self.cb2.GetValue() == True):
-                        Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd)
-
-                    if (self.cbh2.GetValue() == True):
-                        Histogram_Plot(FldPth, file, file, flat_list)
-
                     dialog.Update(NextRow, 'Processing: C2Trace' + str(file) + ' and C4Trace' + str(file) )
                     NextRow = NextRow  + 1
                 
+                # Master Merger part finishing
+                if (MasterMerger == True):
+                    
+                    # Median of the extration time
+                    Tmin, Tmean, Tmedian, Tstd, Text_plot, Flat_formula_list = Stat_time(Master_Extr_List, Ton)
+                                        
+                    file = str(files[0]) + 'to' + str(files[-1])
+                    
+                    # write it in a xl file
+                    Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
+                                   Tmedian* 1000, Tstd*1000, \
+                                   Ton*1000, np.average(Freq), edge]
+                    Write_in_excel(Export_data, NextRow, worksheet)
+                    
+                    if (self.cb2.GetValue() == True):
+                        Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
+
+                    if (self.cbh2.GetValue() == True):
+                        Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
+
                 # Close the progress bar
                 dialog.Destroy()
                 
@@ -572,6 +613,8 @@ class FRS(wx.Frame):
                 dialog = wx.ProgressDialog('A progress box', 'Processing file...', progressMax,
                                            style = wx.PD_ELAPSED_TIME)
                 
+                Master_Extr_List = []
+                
                 NextRow = 1
                 for fileC2, fileC4 in zip(df.C2, df.C4):
                     
@@ -582,33 +625,57 @@ class FRS(wx.Frame):
                     Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(fileC4) + '.txt')    # Source pulsing file
             
                     # calculation of extraction time and on time
-                    extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
+                    Row_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
                     
                     Ton = np.average(Ton)
                     
-                    # Median of the extration time
-                    Tmin, Tmean, Tmedian, Tstd, Text_plot, flat_list = Stat_time(extraction_time, Ton)
-                    
-                    # Real extrection time
-                    Textr = Tmedian - Ton/2
-                    
-                    # write it in a xl file
-                    Export_data = [fileC2, fileC4, Tmin* 1000, Tmean* 1000, \
-                                   Tmedian* 1000, Tstd*1000, Textr* 1000, \
-                                   Ton*1000, np.average(Freq), edge]
-                    Write_in_excel(Export_data, NextRow, worksheet)
-                    
-                    if (self.cbr3.GetValue() == True):
-                        Raw_data_plot(FldPth, fileC4, fileC2, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
-                    
-                    if (self.cb3.GetValue() == True):
-                        Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd)
+                    if (MasterMerger != True):
+                        
+                        # Median of the extration time
+                        Tmin, Tmean, Tmedian, Tstd, Text_plot, Flat_formula_list = Stat_time(Row_time, Ton)
+                        
+                        # write it in a xl file
+                        Export_data = [fileC2, fileC4, Tmin* 1000, Tmean* 1000, \
+                                       Tmedian* 1000, Tstd*1000, \
+                                       Ton*1000, np.average(Freq), edge]
+                        Write_in_excel(Export_data, NextRow, worksheet)
+                        
+                        if (self.cbr3.GetValue() == True):
+                            Raw_data_plot(FldPth, fileC4, fileC2, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                        
+                        if (self.cb3.GetValue() == True):
+                            Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd, Ton)
+    
+                        if (self.cbh3.GetValue() == True):
+                            Histogram_Plot(FldPth, fileC4, fileC2, Flat_formula_list, Tmedian, Tstd, Ton)
 
-                    if (self.cbh3.GetValue() == True):
-                        Histogram_Plot(FldPth, fileC4, fileC2, flat_list)
+                    else:
+                        
+                        for timings in Row_time:
+                            Master_Extr_List.append(timings)
 
                     dialog.Update(NextRow, 'Processing: C2Trace' + str(fileC2) + ' and C4Trace' + str(fileC4) )
                     NextRow = NextRow  + 1
+
+                # Master Merger part finishing
+                if (MasterMerger == True):
+                    
+                    # Median of the extration time
+                    Tmin, Tmean, Tmedian, Tstd, Text_plot, Flat_formula_list = Stat_time(Master_Extr_List, Ton)
+                    
+                    file = 'Random'
+                    
+                    # write it in a xl file
+                    Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
+                                   Tmedian* 1000, Tstd*1000, \
+                                   Ton*1000, np.average(Freq), edge]
+                    Write_in_excel(Export_data, NextRow, worksheet)
+                    
+                    if (self.cb2.GetValue() == True):
+                        Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
+
+                    if (self.cbh2.GetValue() == True):
+                        Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
 
                 # Close the progress bar
                 dialog.Destroy()
