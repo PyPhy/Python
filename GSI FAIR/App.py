@@ -8,6 +8,7 @@ import pandas as pd
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import xlsxwriter
+from collections import Counter
 
 plt.switch_backend('Agg')
 
@@ -56,7 +57,7 @@ def File_handle(FldPth, file):
 
 #%% Extration time function
 
-def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
+def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
 
     # Newton's difference table
     diff = []
@@ -67,7 +68,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
     diff = np.around( np.array(diff) )
     
     # find delta peaks in difference table
-    pks, _ = find_peaks( abs(diff), height=4.5)
+    pks = Detect_Peak(method, abs(diff), 4.5)
     
     if diff[pks[0]] < 0:
         
@@ -115,7 +116,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
             ssmpl2 = list(S_ampl_C2[i] for i in cycle)
             
             # signal detection in C2 channel
-            peksmpl2, _ = find_peaks(ssmpl2, height = pmnc)
+            peksmpl2 = Detect_Peak(method, ssmpl2, pek_mag)
             
             # time when signal detecting in channel C2
             tdect = list(tsmpl2[i] for i in peksmpl2)
@@ -172,7 +173,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
             ssmpl2 = list(S_ampl_C2[i] for i in cycle)
             
             # signal detection in C2 channel
-            peksmpl2, _ = find_peaks(ssmpl2, height = pmnc)
+            peksmpl2 = Detect_Peak(method, ssmpl2, pek_mag)
             
             # time when signal detecting in channel C2
             tdect = list(tsmpl2[i] for i in peksmpl2)
@@ -187,14 +188,22 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc):
 
 #%% Median
     
-def Stat_time(ext_time):
+def Stat_time(ext_time, Ton):
     
     flat_list = []
     for sublist in ext_time:
         for item in sublist:
             flat_list.append(item)
+    
+    Text_plot = []
+    for i in ext_time:
         
-    return min(flat_list), np.mean(flat_list), np.median(flat_list), np.std(flat_list)
+        if not(len(i)) == False:
+            Text_plot.append( list(np.array(i) - Ton/2) )
+        else:
+            Text_plot.append([])
+    
+    return min(flat_list), np.mean(flat_list), np.median(flat_list), np.std(flat_list), Text_plot, flat_list
 
 #%% write in excel file
  
@@ -207,15 +216,15 @@ def Write_in_excel(Data, row, worksheet):
 
 #%% Raw data plot
 
-def Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
+def Raw_data_plot(FldPth, fileC4, fileC2, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4):
     
     # Pulse figure
-    peak_C2, _ = find_peaks(S_ampl_C2, height = pmnc)          # in C2 channel
+    peak_C2 = Detect_Peak(method, S_ampl_C2, pek_mag)          # in C2 channel
     
     if edge == 'fall':
-        peak_C4, _ = find_peaks(5-np.array(S_ampl_C4), height=4.5) # in C4 channel
+        peak_C4 = Detect_Peak(method, 5-np.array(S_ampl_C4), 4.5) # in C4 channel
     else:
-        peak_C4, _ = find_peaks(np.array(S_ampl_C4), height=4.5)
+        peak_C4 = Detect_Peak(method, np.array(S_ampl_C4), 4.5)
     
     plt.plot(Time_C2, S_ampl_C2, label = 'C2 channel')
     plt.plot(Time_C4, S_ampl_C4, label = 'C4 channel')
@@ -232,22 +241,60 @@ def Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C
     
 #%% Cycle plot
     
-def Cycle_plot(FldPth, fileC4, fileC2, extraction_time):
+def Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd):
 
     # Dot plot
     plt.figure()
 
-    for i, item in enumerate(extraction_time):
+    for i, item in enumerate(Text_plot):
         if len(item) > 0:
             xAxis = [i+1]* len(item)
-            plt.scatter(xAxis, item* 1000, alpha = 0.4, color = 'k')
+            # things are in milli seconds now
+            plt.scatter(xAxis, np.array(item)* 1000, alpha = 0.4, color = 'k')
     
+    plt.plot([1, xAxis[0]], [Tmedian*1000]*2, 'r', label = 'median(T) = ' + str( round(Tmedian*1000) ) )
+    plt.plot([1, xAxis[0]], [(Tmedian + Tstd)*1000]*2, 'g', label = 'STD(T) up = ' + str( round((Tmedian + Tstd)*1000) ) )
+    plt.plot([1, xAxis[0]], [(Tmedian - Tstd)*1000]*2, 'k', label = 'STD(T) down = ' + str( round((Tmedian - Tstd)*1000) ) )
+    
+    plt.legend()
     plt.xticks( np.arange(1, xAxis[0] + 1, 1) )
     plt.xlabel('Cycles', fontsize = 14)
-    plt.ylabel('Extraction time (per cycle) (ms)', fontsize = 14)
+    plt.ylabel('Textraction = T - Ton/2 (ms)', fontsize = 14)
     plt.grid()
     plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'cycle.jpg')
     plt.close()
+
+#%% Histogram plot
+    
+def Histogram_Plot(FldPth, fileC4, fileC2, flat_list):
+    
+    plt.figure(figsize=(20, 10))
+    
+    Data = np.array(flat_list)* 1000
+    plt.hist(Data, bins=np.arange(min(Data), max(Data) + 20, 20)) # 20 ms is the width of bin
+    
+    # things for ticks
+    flat_ext_time = np.sort( np.around( np.array(flat_list)* 1000 ) )
+    rep = Counter(flat_ext_time)
+    plt.xticks( list(rep.keys()) )
+    plt.yticks( np.arange(0, max(rep.values()) + 1, 1) )
+    
+    plt.grid()
+    plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'hist.jpg')
+    plt.close()
+
+#%% Detect peak
+
+def Detect_Peak(method, var, var_val):
+    
+    if (method == 'height'):
+        peaks, _ = find_peaks(var, height = var_val)
+    elif (method == 'prominence'):
+        peaks, _ = find_peaks(var, prominence = var_val)
+    elif (method == 'threshold'):
+        peaks, _ = find_peaks(var, threshold = var_val)
+    
+    return peaks
 
 #%% App
 
@@ -255,9 +302,9 @@ class FRS(wx.Frame):
 
     def __init__(self):
         wx.Frame.__init__(self, None, -1, 'Extraction time calculator', 
-                          size=(400,568), 
+                          size=(400,630), 
                           style = wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION )
-        panel = wx.Panel(self, -1)
+        panel  = wx.Panel(self, -1)
         
         self.FoldPath = os.getcwd()
         
@@ -277,8 +324,9 @@ class FRS(wx.Frame):
         self.file_op1 = wx.TextCtrl(panel, -1, '00000', pos=(110, 112))
         
         # Checkbox
-        self.cb1 = wx.CheckBox(panel, label = 'Save plot', pos = (40,157))
+        self.cb1 = wx.CheckBox(panel, label = 'Cycle plot', pos = (40,157))
         self.cbr1 = wx.CheckBox(panel, label = 'Raw plot', pos = (150,157))
+        self.cbh1 = wx.CheckBox(panel, label = 'Hist plot', pos = (260,157))
         
         # horizontal line between 1st and 2nd option
         ln = wx.StaticLine(panel, -1, pos=(10,136), style= wx.LI_HORIZONTAL)
@@ -296,8 +344,9 @@ class FRS(wx.Frame):
         self.file2_op2 = wx.TextCtrl(panel, -1, '00000', pos=(270,239))
         
         # Checkbox
-        self.cb2 = wx.CheckBox(panel, label = 'Save plot', pos = (40,284))
+        self.cb2 = wx.CheckBox(panel, label = 'Cycle plot', pos = (40,284))
         self.cbr2 = wx.CheckBox(panel, label = 'Raw plot', pos = (150,284))
+        self.cbh2 = wx.CheckBox(panel, label = 'Hist plot', pos = (260,284))
 
         # horizontal line between 2nd and 3rds option
         ln = wx.StaticLine(panel, -1, pos=(10,264), style= wx.LI_HORIZONTAL)
@@ -307,23 +356,41 @@ class FRS(wx.Frame):
                                   pos = (10,324) )
         
         # Checkbox
-        self.cb3 = wx.CheckBox(panel, label = 'Save plot', pos = (40,364))
+        self.cb3 = wx.CheckBox(panel, label = 'Cycle plot', pos = (40,364))
         self.cbr3 = wx.CheckBox(panel, label = 'Raw plot', pos = (150,364))
+        self.cbh3 = wx.CheckBox(panel, label = 'Hist plot', pos = (260,364))
         
         # horizontal line
         ln = wx.StaticLine(panel, -1, pos=(10,344), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
-        # height
-        wx.StaticText(panel, -1, 'Height : ', pos=(10,419))
-        self.prmnc = wx.TextCtrl(panel, -1, '20', pos=(110,414))
-        wx.StaticText(panel, -1, '(mV)', pos=(215,419))
+        # Peak detection method
+        wx.StaticText(panel, -1, 'Select the peak detection method...', pos=(10,405))
         
-        ln = wx.StaticLine(panel, -1, pos=(10,410), style= wx.LI_HORIZONTAL)
+        # height method
+        self.Peak_op1 = wx.RadioButton(panel, label = 'Height',
+                                       pos=(10, 435), style = wx.RB_GROUP)
+        self.hght = wx.TextCtrl(panel, -1, '10', pos=(120,430))
+        wx.StaticText(panel, -1, '(mV)', pos=(235,435))
+        
+        # Prominence method
+        self.Peak_op2 = wx.RadioButton(panel, label = 'Prominence',
+                                       pos=(10, 467))
+        self.pmnc = wx.TextCtrl(panel, -1, '10', pos=(120,465))
+        wx.StaticText(panel, -1, '(mV)', pos=(235,470))
+        
+        # Threshold method
+        self.Peak_op3 = wx.RadioButton(panel, label = 'Threshold',
+                                       pos=(10, 500))
+        self.thrsld = wx.TextCtrl(panel, -1, '10', pos=(120,500))
+        wx.StaticText(panel, -1, '(mV)', pos=(235,505))
+        
+        
+        ln = wx.StaticLine(panel, -1, pos=(10,490), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
         
         # Calculate button
-        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150,484))
+        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150,555))
         self.CalBtn.Bind(wx.EVT_BUTTON, self.OnClick)
 
         # Setup
@@ -350,9 +417,22 @@ class FRS(wx.Frame):
         option1 = self.op1.GetValue()
         option2 = self.op2.GetValue()
         option3 = self.op3.GetValue()
-        pmnc    = float(self.prmnc.GetValue())* 1e-3
         FldPth  = self.FoldPath
         
+        # peak detection method
+        if (self.Peak_op1.GetValue() == True):
+            method  = 'height'
+            pek_mag = float(self.hght.GetValue())* 1e-3
+            
+        elif (self.Peak_op2.GetValue() == True):
+            method  = 'prominence'
+            pek_mag = float(self.pmnc.GetValue())* 1e-3
+            
+        elif (self.Peak_op3.GetValue() == True):
+            method  = 'threshold'
+            pek_mag = float(self.thrsld.GetValue())* 1e-3
+            
+            
         # Create a workbook and add a worksheet.
         workbook = xlsxwriter.Workbook(FldPth + '/Data.xlsx')
         worksheet = workbook.add_worksheet()
@@ -360,7 +440,7 @@ class FRS(wx.Frame):
         Data_columns = (['File C2', 'File C4', 'First ion (ms)', 'Mean (ms)', 'Median (ms)', \
                          'Standard deviation (ms)', 'Extraction time (ms)', \
                          'ON time (ms)', 'Detected frequncy (Hz)', 'Edge', \
-                         'Voltage (volt)', 'Temperature (K)', 'Pressure (units)'])
+                         'Voltage (mV)', 'Temperature (K)', 'Pressure (mbar)'])
         Write_in_excel(Data_columns, 0, worksheet)
         
         #%% First option
@@ -375,25 +455,30 @@ class FRS(wx.Frame):
                 Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + file + '.txt')    # Source pulsing file
         
                 # calculation of extraction time and on time
-                extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
+                
+                Ton = np.average(Ton)
                 
                 # Median of the extration time
-                Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
+                Tmin, Tmean, Tmedian, Tstd, Text_plot, flat_list = Stat_time(extraction_time, Ton)
                 
                 # Real extrection time
-                Textr = Tmedian - np.average(Ton)/2
+                Textr = Tmedian - Ton/2
                 
                 # write it in a excel file
                 Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
                                Tmedian* 1000, Tstd*1000, Textr* 1000, \
-                               np.average(Ton)*1000, np.average(Freq), edge]
+                               Ton*1000, np.average(Freq), edge]
                 Write_in_excel(Export_data, 1, worksheet)
     
                 if (self.cbr1.GetValue() == True):
-                    Raw_data_plot(FldPth, file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                    Raw_data_plot(FldPth, file, file, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                 
                 if (self.cb1.GetValue() == True):
-                    Cycle_plot(FldPth, file, file, extraction_time)
+                    Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd)
+                    
+                if (self.cbh1.GetValue() == True):
+                    Histogram_Plot(FldPth, file, file, flat_list)
                 
                 # Close the excel file now
                 workbook.close()
@@ -430,26 +515,31 @@ class FRS(wx.Frame):
                     Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(file) + '.txt')    # Source pulsing file
             
                     # calculation of extraction time and on time
-                    extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                    extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
+                    
+                    Ton = np.average(Ton)
                     
                     # Median of the extration time
-                    Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
+                    Tmin, Tmean, Tmedian, Tstd, Text_plot, flat_list = Stat_time(extraction_time, Ton)
                     
                     # Real extrection time
-                    Textr = Tmedian - np.average(Ton)/2
+                    Textr = Tmedian - Ton/2
                     
                     # write it in a xl file
                     Export_data = [file, file, Tmin* 1000, Tmean* 1000, \
                                    Tmedian* 1000, Tstd*1000, Textr* 1000, \
-                                   np.average(Ton)*1000, np.average(Freq), edge]
+                                   Ton*1000, np.average(Freq), edge]
                     Write_in_excel(Export_data, NextRow, worksheet)
                     
                     if (self.cbr2.GetValue() == True):
-                        Raw_data_plot(FldPth, file, file, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                        Raw_data_plot(FldPth, file, file, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                     
                     if (self.cb2.GetValue() == True):
-                        Cycle_plot(FldPth, file, file, extraction_time)
-                    
+                        Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd)
+
+                    if (self.cbh2.GetValue() == True):
+                        Histogram_Plot(FldPth, file, file, flat_list)
+
                     dialog.Update(NextRow, 'Processing: C2Trace' + str(file) + ' and C4Trace' + str(file) )
                     NextRow = NextRow  + 1
                 
@@ -492,25 +582,30 @@ class FRS(wx.Frame):
                     Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(fileC4) + '.txt')    # Source pulsing file
             
                     # calculation of extraction time and on time
-                    extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pmnc)
+                    extraction_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
+                    
+                    Ton = np.average(Ton)
                     
                     # Median of the extration time
-                    Tmin, Tmean, Tmedian, Tstd = Stat_time(extraction_time)
+                    Tmin, Tmean, Tmedian, Tstd, Text_plot, flat_list = Stat_time(extraction_time, Ton)
                     
                     # Real extrection time
-                    Textr = Tmedian - np.average(Ton)/2
+                    Textr = Tmedian - Ton/2
                     
                     # write it in a xl file
                     Export_data = [fileC2, fileC4, Tmin* 1000, Tmean* 1000, \
                                    Tmedian* 1000, Tstd*1000, Textr* 1000, \
-                                   np.average(Ton)*1000, np.average(Freq), edge]
+                                   Ton*1000, np.average(Freq), edge]
                     Write_in_excel(Export_data, NextRow, worksheet)
                     
                     if (self.cbr3.GetValue() == True):
-                        Raw_data_plot(FldPth, fileC4, fileC2, pmnc, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
+                        Raw_data_plot(FldPth, fileC4, fileC2, pek_mag, method, edge, Time_C2, S_ampl_C2, Time_C4, S_ampl_C4)
                     
                     if (self.cb3.GetValue() == True):
-                        Cycle_plot(FldPth, fileC4, fileC2, extraction_time)
+                        Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd)
+
+                    if (self.cbh3.GetValue() == True):
+                        Histogram_Plot(FldPth, fileC4, fileC2, flat_list)
 
                     dialog.Update(NextRow, 'Processing: C2Trace' + str(fileC2) + ' and C4Trace' + str(fileC4) )
                     NextRow = NextRow  + 1
