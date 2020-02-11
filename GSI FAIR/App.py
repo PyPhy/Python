@@ -70,120 +70,257 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
     # find delta peaks in difference table
     pks = Detect_Peak(method, abs(diff), 4.5)
     
-    if diff[pks[0]] < 0:
-        
-        edge = 'fall'
-
-        # in real scale peaks are at pks + 1 time
-        # peaks were trigger started
-        down_peak = pks[::2] + 1
-        
-        # last edge of trigger
-        up_peak = pks[1::2] + 1
-        
-        # Now check if data ends with fall, if yes ignore the last pulse
-        if len(down_peak) > len(up_peak):
-            down_peak = down_peak[:-1:]
-        
-        # starting edge
-        downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
-        
-        # ending edge
-        upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
-        
-        # Trigger on time
-        ONTime = upEdge - downEdge
-        
-        # frequency detected
-        f = []
-        for i in range(1, len(downEdge)):
-            f.append(1/ (downEdge[i] - downEdge[i-1]) )
-        
-        
-        ExtTime = []
-        
-        for epoch in range(1, len(downEdge) + 1):
+    # File type
+    d1 = pks[1] - pks[0]
+    d2 = pks[2] - pks[1]
+    
+    flag = 'Happy_File'
+    
+    if (d1 > d2):
+        flag = 'Sad_File'
+    
+    if (flag == 'Happy_File'):
+    
+        if diff[pks[0]] < 0:
             
-            # Cycle
-            if (epoch == len(downEdge) ):
-                cycle = np.arange(down_peak[epoch - 1], len(Time_C4), 1)
-            else:
-                cycle = np.arange(down_peak[epoch - 1], down_peak[epoch] + 1, 1)
+            edge = 'fall'
+    
+            # in real scale peaks are at pks + 1 time
+            # peaks were trigger started
+            down_peak = pks[::2] + 1
+            
+            # last edge of trigger
+            up_peak = pks[1::2] + 1
+            
+            # Now check if data ends with fall, if yes ignore the last pulse
+            if len(down_peak) > len(up_peak):
+                down_peak = down_peak[:-1:]
+            
+            # starting edge
+            downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
+            
+            # ending edge
+            upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
+            
+            # Trigger on time
+            ONTime = upEdge - downEdge
+            
+            # frequency detected
+            f = []
+            for i in range(1, len(downEdge)):
+                f.append(1/ (downEdge[i] - downEdge[i-1]) )
             
             
-            # Now corresponding cycle in C2 could be found as
-            tsmpl2 = list(Time_C2[i] for i in cycle)
-            ssmpl2 = list(S_ampl_C2[i] for i in cycle)
+            ExtTime = []
             
-            # signal detection in C2 channel
-            peksmpl2 = Detect_Peak(method, ssmpl2, pek_mag)
+            for epoch in range(1, len(downEdge) + 1):
+                
+                # Cycle
+                if (epoch == len(downEdge) ):
+                    cycle = np.arange(down_peak[epoch - 1], len(Time_C4), 1)
+                else:
+                    cycle = np.arange(down_peak[epoch - 1], down_peak[epoch] + 1, 1)
+                
+                
+                # Now corresponding cycle in C2 could be found as
+                tsmpl2 = list(Time_C2[i] for i in cycle)
+                ssmpl2 = list(S_ampl_C2[i] for i in cycle)
+                
+                # signal detection in C2 channel
+                peksmpl2 = Detect_Peak(method, ssmpl2, pek_mag)
+                
+                # time when signal detecting in channel C2
+                tdect = list(tsmpl2[i] for i in peksmpl2)
+                
+                dt = []
+                if len(tdect):
+                    dt = tdect - Time_C4[cycle[0]]
             
-            # time when signal detecting in channel C2
-            tdect = list(tsmpl2[i] for i in peksmpl2)
-            
-            dt = []
-            if len(tdect):
-                dt = tdect - Time_C4[cycle[0]]
+                ExtTime.append(dt)
         
-            ExtTime.append(dt)
+        else:
+            
+            edge = 'up'
+            
+            # in real scale peaks are at pks + 1 time
+            # peaks were trigger started
+            up_peak = pks[::2] + 1
+            
+            # last edge of trigger
+            down_peak = pks[1::2] + 1
+            
+            # Now check if data ends with up pulse, if yes ignore the last pulse
+            if len(up_peak) > len(down_peak):
+                up_peak = up_peak[:-1:]
+            
+            # starting edge
+            upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
+            
+            # ending edge
+            downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
+            
+            # Trigger on time
+            ONTime = downEdge - upEdge
+            
+            # frequency detected
+            f = []
+            for i in range(1, len(upEdge)):
+                f.append(1/ (upEdge[i] - upEdge[i-1]) )
+                
+            
+            ExtTime = []
+            
+            for epoch in range(1, len(upEdge) + 1):
+                
+                # Cycle
+                if (epoch == len(upEdge) ):
+                    cycle = np.arange(up_peak[epoch - 1], len(Time_C4), 1)
+                else:
+                    cycle = np.arange(up_peak[epoch - 1], up_peak[epoch] + 1, 1)
+                
+                
+                # Now corresponding cycle in C2 could be found as
+                tsmpl2 = list(Time_C2[i] for i in cycle)
+                ssmpl2 = list(S_ampl_C2[i] for i in cycle)
+                
+                # signal detection in C2 channel
+                peksmpl2 = Detect_Peak(method, ssmpl2, pek_mag)
+                
+                # time when signal detecting in channel C2
+                tdect = list(tsmpl2[i] for i in peksmpl2)
+                
+                dt = []
+                if len(tdect):
+                    dt = tdect - Time_C4[cycle[0]]
+            
+                ExtTime.append(dt)
     
     else:
         
-        edge = 'up'
-        
-        # in real scale peaks are at pks + 1 time
-        # peaks were trigger started
-        up_peak = pks[::2] + 1
-        
-        # last edge of trigger
-        down_peak = pks[1::2] + 1
-        
-        # Now check if data ends with up pulse, if yes ignore the last pulse
-        if len(up_peak) > len(down_peak):
-            up_peak = up_peak[:-1:]
-        
-        # starting edge
-        upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
-        
-        # ending edge
-        downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
-        
-        # Trigger on time
-        ONTime = downEdge - upEdge
-        
-        # frequency detected
-        f = []
-        for i in range(1, len(upEdge)):
-            f.append(1/ (upEdge[i] - upEdge[i-1]) )
+        if diff[pks[0]] < 0:
             
-        
-        ExtTime = []
-        
-        for epoch in range(1, len(upEdge) + 1):
+            # if we ignore the first peak then its up
+            edge = 'up'
             
-            # Cycle
-            if (epoch == len(upEdge) ):
-                cycle = np.arange(up_peak[epoch - 1], len(Time_C4), 1)
-            else:
-                cycle = np.arange(up_peak[epoch - 1], up_peak[epoch] + 1, 1)
+            # in real scale peaks are at pks + 1 time
+            # peaks were trigger started
+            # as its sad file of category 'up', down peak comes first
+            down_peak = pks[::2] + 1
+            
+            # last edge of trigger
+            up_peak = pks[1::2] + 1
+            
+            # now get rid of the devil and make it happy_file
+            down_peak = down_peak[1:]
+            
+            # Now check if data ends with up pulse, if yes ignore the last pulse
+            if len(up_peak) > len(down_peak):
+                up_peak = up_peak[:-1:]
+            
+            # starting edge
+            upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
+            
+            # ending edge
+            downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
+            
+            # Trigger on time
+            ONTime = downEdge - upEdge
+            
+            # frequency detected
+            f = []
+            for i in range(1, len(upEdge)):
+                f.append(1/ (upEdge[i] - upEdge[i-1]) )
+                
+            
+            ExtTime = []
+            
+            for epoch in range(1, len(upEdge) + 1):
+                
+                # Cycle
+                if (epoch == len(upEdge) ):
+                    cycle = np.arange(up_peak[epoch - 1], len(Time_C4), 1)
+                else:
+                    cycle = np.arange(up_peak[epoch - 1], up_peak[epoch] + 1, 1)
+                
+                
+                # Now corresponding cycle in C2 could be found as
+                tsmpl2 = list(Time_C2[i] for i in cycle)
+                ssmpl2 = list(S_ampl_C2[i] for i in cycle)
+                
+                # signal detection in C2 channel
+                peksmpl2 = Detect_Peak(method, ssmpl2, pek_mag)
+                
+                # time when signal detecting in channel C2
+                tdect = list(tsmpl2[i] for i in peksmpl2)
+                
+                dt = []
+                if len(tdect):
+                    dt = tdect - Time_C4[cycle[0]]
+            
+                ExtTime.append(dt)
+
+        else:
+            
+            # if we ignore the first peak then its fall
+            edge = 'fall'
+            
+            # in real scale peaks are at pks + 1 time
+            # peaks were trigger started
+            # as its sad file of category 'fall', up peak comes first
+            up_peak = pks[::2] + 1
+            
+            # last edge of trigger
+            down_peak = pks[1::2] + 1
+            
+            # now get rid of the devil and make it happy_file
+            up_peak = up_peak[1:]
+            
+            # Now check if data ends with fall, if yes ignore the last pulse
+            if len(down_peak) > len(up_peak):
+                down_peak = down_peak[:-1:]
+            
+            # starting edge
+            downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
+            
+            # ending edge
+            upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
+            
+            # Trigger on time
+            ONTime = upEdge - downEdge
+            
+            # frequency detected
+            f = []
+            for i in range(1, len(downEdge)):
+                f.append(1/ (downEdge[i] - downEdge[i-1]) )
             
             
-            # Now corresponding cycle in C2 could be found as
-            tsmpl2 = list(Time_C2[i] for i in cycle)
-            ssmpl2 = list(S_ampl_C2[i] for i in cycle)
+            ExtTime = []
             
-            # signal detection in C2 channel
-            peksmpl2 = Detect_Peak(method, ssmpl2, pek_mag)
+            for epoch in range(1, len(downEdge) + 1):
+                
+                # Cycle
+                if (epoch == len(downEdge) ):
+                    cycle = np.arange(down_peak[epoch - 1], len(Time_C4), 1)
+                else:
+                    cycle = np.arange(down_peak[epoch - 1], down_peak[epoch] + 1, 1)
+                
+                
+                # Now corresponding cycle in C2 could be found as
+                tsmpl2 = list(Time_C2[i] for i in cycle)
+                ssmpl2 = list(S_ampl_C2[i] for i in cycle)
+                
+                # signal detection in C2 channel
+                peksmpl2 = Detect_Peak(method, ssmpl2, pek_mag)
+                
+                # time when signal detecting in channel C2
+                tdect = list(tsmpl2[i] for i in peksmpl2)
+                
+                dt = []
+                if len(tdect):
+                    dt = tdect - Time_C4[cycle[0]]
             
-            # time when signal detecting in channel C2
-            tdect = list(tsmpl2[i] for i in peksmpl2)
+                ExtTime.append(dt)
             
-            dt = []
-            if len(tdect):
-                dt = tdect - Time_C4[cycle[0]]
-        
-            ExtTime.append(dt)
-    
     return ExtTime, ONTime, f, edge
 
 #%% Median
@@ -673,7 +810,7 @@ class FRS(wx.Frame):
                     
                     if (self.cb2.GetValue() == True):
                         Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
-
+                    
                     if (self.cbh2.GetValue() == True):
                         Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
 
