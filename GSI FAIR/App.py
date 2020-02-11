@@ -704,6 +704,8 @@ class FRS(wx.Frame):
                 # Master Merger part finishing
                 if (MasterMerger == True):
                     
+                    NextRow = 1
+                    
                     # Median of the extration time
                     Tmin, Tmean, Tmedian, Tstd, Text_plot, Flat_formula_list = Stat_time(Master_Extr_List, Ton)
                                         
@@ -797,6 +799,8 @@ class FRS(wx.Frame):
                 # Master Merger part finishing
                 if (MasterMerger == True):
                     
+                    NextRow = 1
+                    
                     # Median of the extration time
                     Tmin, Tmean, Tmedian, Tstd, Text_plot, Flat_formula_list = Stat_time(Master_Extr_List, Ton)
                     
@@ -808,10 +812,10 @@ class FRS(wx.Frame):
                                    Ton*1000, np.average(Freq), edge]
                     Write_in_excel(Export_data, NextRow, worksheet)
                     
-                    if (self.cb2.GetValue() == True):
+                    if (self.cb3.GetValue() == True):
                         Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
                     
-                    if (self.cbh2.GetValue() == True):
+                    if (self.cbh3.GetValue() == True):
                         Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
 
                 # Close the progress bar
