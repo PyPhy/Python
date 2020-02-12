@@ -135,6 +135,17 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
                 dt = []
                 if len(tdect):
                     dt = tdect - Time_C4[cycle[0]]
+                    
+                    # negative dt belongs to the previous cycle
+                    for index, things in enumerate(dt):
+                        
+                        if (things - ONTime[0]/2) < 0:
+                            if (epoch == 1):
+                                dt = np.delete(dt, index)
+                            else:
+                                # in all the case frequency is going to be almost same
+                                things = things + f[0]
+                                dt[index] = things
             
                 ExtTime.append(dt)
         
@@ -192,6 +203,17 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
                 dt = []
                 if len(tdect):
                     dt = tdect - Time_C4[cycle[0]]
+                    
+                    # negative dt belongs to the previous cycle
+                    for index, things in enumerate(dt):
+                        
+                        if (things - ONTime[0]/2) < 0:
+                            if (epoch == 1):
+                                dt = np.delete(dt, index)
+                            else:
+                                # in all the case frequency is going to be almost same
+                                things = things + f[0]
+                                dt[index] = things
             
                 ExtTime.append(dt)
     
@@ -256,6 +278,17 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
                 dt = []
                 if len(tdect):
                     dt = tdect - Time_C4[cycle[0]]
+                    
+                    # negative dt belongs to the previous cycle
+                    for index, things in enumerate(dt):
+                        
+                        if (things - ONTime[0]/2) < 0:
+                            if (epoch == 1):
+                                dt = np.delete(dt, index)
+                            else:
+                                # in all the case frequency is going to be almost same
+                                things = things + f[0]
+                                dt[index] = things
             
                 ExtTime.append(dt)
 
@@ -318,6 +351,17 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
                 dt = []
                 if len(tdect):
                     dt = tdect - Time_C4[cycle[0]]
+                    
+                    # negative dt belongs to the previous cycle
+                    for index, things in enumerate(dt):
+                        
+                        if (things - ONTime[0]/2) < 0:
+                            if (epoch == 1):
+                                dt = np.delete(dt, index)
+                            else:
+                                # in all the case frequency is going to be almost same
+                                things = things + f[0]
+                                dt[index] = things
             
                 ExtTime.append(dt)
             
