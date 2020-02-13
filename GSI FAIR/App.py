@@ -368,7 +368,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
     return ExtTime, ONTime, f, edge
 
 #%% Median
-    
+
 def Stat_time(row_time, Ton):
     
     flat_list = []
@@ -444,7 +444,13 @@ def Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd, Ton):
     plt.plot([1, xAxis[0]], [(Tmedian - Tstd)*1000]*2, 'k', label = 'STD(Text) (down) = ' + str( round((Tmedian - Tstd)*1000) ) )
     
     plt.legend()
-    plt.xticks( np.arange(1, xAxis[0] + 1, 1) )
+    
+    if (xAxis[0] < 40):
+        plt.xticks( np.arange(1, xAxis[0] + 1, 1) )
+    else:
+        h = myround( xAxis[0]/ 40, 5)
+        plt.xticks( np.arange(1, xAxis[0] + h, h) )
+    
     plt.xlabel('Cycles', fontsize = 14)
     plt.ylabel('Textraction (ms)', fontsize = 14)
     plt.grid()
@@ -466,14 +472,24 @@ def Histogram_Plot(FldPth, fileC4, fileC2, Flat_formula_list, Tmedian, Tstd, Ton
     flat_ext_time = np.sort( np.around( np.array(Flat_formula_list)* 1000 ) )
     rep = Counter(flat_ext_time)
     plt.xticks( list(rep.keys()) )
-    plt.yticks( np.arange(0, max(rep.values()) + 1, 1) )
     
+    if max(rep.values()) < 50:
+        plt.yticks( np.arange(0, max(rep.values()) + 2, 2 ) )
+    else:
+        h = myround(max(rep.values())/ 25, 5)
+        plt.yticks( np.arange(0, max(rep.values()) + h, h) )
+        
     plt.title('median(Text) = ' + str( round(Tmedian*1000, 2)) + ' (ms), STD(Text) = ' + str( round(Tstd*1000, 2)) + ' (ms), Ton = ' + str( round(Ton*1000, 2)) + ' (ms)', fontweight = 'bold', fontsize = 16)
     plt.xlabel('Textaction (ms)', fontsize = 14)
     plt.ylabel('Counts', fontsize = 14)
     plt.grid()
     plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'hist.jpg')
     plt.close()
+
+#%% Round off the number with different base
+    
+def myround(x, base):
+    return base * round(x/base)
 
 #%% Detect peak
 
@@ -494,7 +510,7 @@ class FRS(wx.Frame):
 
     def __init__(self):
         wx.Frame.__init__(self, None, -1, 'Extraction time calculator', 
-                          size=(400,690), 
+                          size=(400,720), 
                           style = wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION )
         panel  = wx.Panel(self, -1)
         
@@ -590,7 +606,13 @@ class FRS(wx.Frame):
         # Calculate button
         self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150,610))
         self.CalBtn.Bind(wx.EVT_BUTTON, self.OnClick)
-
+        
+        ln = wx.StaticLine(panel, -1, pos=(10,605), style= wx.LI_HORIZONTAL)
+        ln.SetSize((410,100))
+        
+        # warning
+        wx.StaticText(panel, -1, 'CAUTION: Duty cycle must be less than 50%', pos=(10, 665))
+        
         # Setup
         Icon_Path = os.path.abspath('divsys.png')
         icon = wx.Icon(Icon_Path, wx.BITMAP_TYPE_PNG)
