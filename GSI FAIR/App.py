@@ -604,8 +604,12 @@ class FRS(wx.Frame):
         ln.SetSize((410,100))
         
         # Calculate button
-        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(150,610))
+        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(85,610))
         self.CalBtn.Bind(wx.EVT_BUTTON, self.OnClick)
+        
+        # Close button
+        self.CloseBtn = wx.Button(panel, -1, 'Close', pos=(215,610))
+        self.CloseBtn.Bind(wx.EVT_BUTTON, self.CloseApp)
         
         ln = wx.StaticLine(panel, -1, pos=(10,605), style= wx.LI_HORIZONTAL)
         ln.SetSize((410,100))
@@ -617,6 +621,12 @@ class FRS(wx.Frame):
         Icon_Path = os.path.abspath('divsys.png')
         icon = wx.Icon(Icon_Path, wx.BITMAP_TYPE_PNG)
         self.SetIcon(icon)
+        
+    #%% Close the app
+    
+    def CloseApp(self, event):
+        
+        self.Close()
 
     #%%
     
