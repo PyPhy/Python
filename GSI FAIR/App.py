@@ -627,11 +627,15 @@ class FRS(wx.Frame):
         ln.SetSize((410,100))
         
         # Calculate button
-        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(85,610))
+        self.CalBtn = wx.Button(panel, -1, 'Calculate', pos=(30,610))
         self.CalBtn.Bind(wx.EVT_BUTTON, self.OnClick)
         
+        # About button
+        self.AboutBtn = wx.Button(panel, -1, 'About', pos=(210,610))
+        self.AboutBtn.Bind(wx.EVT_BUTTON, self.AboutApp)
+        
         # Close button
-        self.CloseBtn = wx.Button(panel, -1, 'Close', pos=(215,610))
+        self.CloseBtn = wx.Button(panel, -1, 'Close', pos=(300,610))
         self.CloseBtn.Bind(wx.EVT_BUTTON, self.CloseApp)
         
         ln = wx.StaticLine(panel, -1, pos=(10,605), style= wx.LI_HORIZONTAL)
@@ -650,6 +654,39 @@ class FRS(wx.Frame):
     def CloseApp(self, event):
         
         self.Close()
+        
+    #%% About an app
+    
+    def AboutApp(self, event):
+        
+        Document = 'Extraction Time Analyser\n\
+By: Divyang R. Prajapati\n\
+First release: February 15, 2020\n \n\
+1) Browse Folder:\n\
+Browse the folder in which data files are kept.\n\n\
+2) Select file:\n\
+With this option user analyse a single file of interest. The output file will \
+be saved in a selected folder on the complition of the process.\n\n\
+3) Ordered files:\n\
+Analyse multiple files individually by choosing this option. It is assumed that\
+ file number increses in a step of one.\n\n\
+4) Random files:\n\
+Analysis of files having random number is possible with this option. List the C4\
+ and corresponding C2 file numbers in "ListRandom.txt".\n\n\
+5) Peak detection method:\n\
+Select the most effective peak detection method for analysis. The SciPy function \
+find_peaks() is used for this purpose.\n\n\
+6) Master Merger Tool:\n\
+This tool merges multiple files and analyse extraction time at once. When statistics \
+are low this tool become very useful.\n\n\
+User can generate plot of extraction time per cycle, raw data, and/or Histogram.\
+ The app detects the Ton time from raw data. But if user wants to add it manually, \
+then check the "Manual Ton" option and eneter the value.\n\n\
+For further details, please refer my report of Get Involved program or contact \
+divyangprajapati72@gmail.com.'
+        
+        dlg = wx.MessageDialog(None, Document, 'About')
+        dlg.ShowModal()
 
     #%%
     
