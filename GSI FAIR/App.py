@@ -57,7 +57,7 @@ def File_handle(FldPth, file):
 
 #%% Extration time function
 
-def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
+def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method, Manula_Ton_flag, MnTon_val):
 
     # Newton's difference table
     diff = []
@@ -103,7 +103,10 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
             upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
             
             # Trigger on time
-            ONTime = upEdge - downEdge
+            if Manula_Ton_flag:
+                ONTime = [MnTon_val]
+            else:
+                ONTime = upEdge - downEdge
             
             # frequency detected
             f = []
@@ -144,7 +147,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
                                 dt = np.delete(dt, index)
                             else:
                                 # in all the case frequency is going to be almost same
-                                things = things + f[0]
+                                things = things + (1/f[0])
                                 dt[index] = things
             
                 ExtTime.append(dt)
@@ -171,7 +174,10 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
             downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
             
             # Trigger on time
-            ONTime = downEdge - upEdge
+            if Manula_Ton_flag:
+                ONTime = [MnTon_val]
+            else:
+                ONTime = downEdge - upEdge
             
             # frequency detected
             f = []
@@ -212,7 +218,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
                                 dt = np.delete(dt, index)
                             else:
                                 # in all the case frequency is going to be almost same
-                                things = things + f[0]
+                                things = things + (1/f[0])
                                 dt[index] = things
             
                 ExtTime.append(dt)
@@ -246,7 +252,10 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
             downEdge = np.array( list(Time_C4[i] for i in down_peak ) )
             
             # Trigger on time
-            ONTime = downEdge - upEdge
+            if Manula_Ton_flag:
+                ONTime = [MnTon_val]
+            else:
+                ONTime = downEdge - upEdge
             
             # frequency detected
             f = []
@@ -287,7 +296,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
                                 dt = np.delete(dt, index)
                             else:
                                 # in all the case frequency is going to be almost same
-                                things = things + f[0]
+                                things = things + (1/f[0])
                                 dt[index] = things
             
                 ExtTime.append(dt)
@@ -319,7 +328,10 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
             upEdge = np.array( list(Time_C4[i] for i in up_peak ) )
             
             # Trigger on time
-            ONTime = upEdge - downEdge
+            if Manula_Ton_flag:
+                ONTime = [MnTon_val]
+            else:
+                ONTime = upEdge - downEdge
             
             # frequency detected
             f = []
@@ -360,7 +372,7 @@ def Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method):
                                 dt = np.delete(dt, index)
                             else:
                                 # in all the case frequency is going to be almost same
-                                things = things + f[0]
+                                things = things + (1/f[0])
                                 dt[index] = things
             
                 ExtTime.append(dt)
@@ -509,7 +521,7 @@ def Detect_Peak(method, var, var_val):
 class FRS(wx.Frame):
 
     def __init__(self):
-        wx.Frame.__init__(self, None, -1, 'Extraction time calculator', 
+        wx.Frame.__init__(self, None, -1, 'Extraction Time Analyser', 
                           size=(400,720), 
                           style = wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION )
         panel  = wx.Panel(self, -1)
@@ -524,8 +536,12 @@ class FRS(wx.Frame):
         ln.SetSize((410,100))
         
         #
-        self.op1 = wx.RadioButton(panel, label = 'Select one file',
+        self.op1 = wx.RadioButton(panel, label = 'Select file',
                                   pos=(10, 69), style = wx.RB_GROUP)
+        
+        # manually add Ton
+        self.MnTon_1 = wx.CheckBox(panel, label = 'Manual Ton', pos = (150,69))
+        self.MnTon_val_1 = wx.TextCtrl(panel, -1, '(ms)', pos=(270,67))
         
         # first file entry
         wx.StaticText(panel, -1, 'File : ', pos=(40, 117))
@@ -542,6 +558,10 @@ class FRS(wx.Frame):
         
         self.op2 = wx.RadioButton(panel, label = 'Ordered files',
                                   pos = (10,196) )
+        
+        # manually add Ton
+        self.MnTon_2 = wx.CheckBox(panel, label = 'Manual Ton', pos = (150,196))
+        self.MnTon_val_2 = wx.TextCtrl(panel, -1, 'all/sep (ms)', pos=(270,194))
         
         # first file entry
         wx.StaticText(panel, -1, 'From : ', pos=(40, 244))
@@ -562,6 +582,9 @@ class FRS(wx.Frame):
         
         self.op3 = wx.RadioButton(panel, label = 'Random files',
                                   pos = (10,324) )
+        
+        # manually add Ton
+        self.MnTon_3 = wx.CheckBox(panel, label = 'Manual Ton', pos = (150,324))
         
         # Checkbox
         self.cb3 = wx.CheckBox(panel, label = 'Cycle plot', pos = (40,364))
@@ -649,7 +672,7 @@ class FRS(wx.Frame):
         option3 = self.op3.GetValue()
         FldPth  = self.FoldPath
         MasterMerger = self.MasterMerge.GetValue()
-        
+
         # peak detection method
         if (self.Peak_op1.GetValue() == True):
             method  = 'height'
@@ -678,6 +701,17 @@ class FRS(wx.Frame):
         
         if (option1 == True):
             
+            # Manual Ton
+            MnTon_1 = self.MnTon_1.GetValue()
+            MnTon_val_1 = ['junk var']
+            
+            if (MnTon_1 == True): 
+                try:
+                    # this should be in second as we are calculating things in second not in milli second
+                    MnTon_val_1 = float(self.MnTon_val_1.GetValue())* 1e-3
+                except ValueError:
+                    wx.MessageBox('Ton can not be a string')
+                
             try:      
                 # get values form all input area
                 file = self.file_op1.GetValue()
@@ -686,7 +720,7 @@ class FRS(wx.Frame):
                 Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + file + '.txt')    # Source pulsing file
         
                 # calculation of extraction time and on time
-                Row_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
+                Row_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method, MnTon_1, MnTon_val_1)
                 
                 Ton = np.average(Ton)
                 
@@ -727,8 +761,20 @@ class FRS(wx.Frame):
             # get values form all input area
             frst_file = self.file1_op2.GetValue()
             last_file = self.file2_op2.GetValue()
-                     
+            
             files = [f'{i:05}' for i in range(int(frst_file), int(last_file) + 1)]
+            
+            # Manual Ton
+            MnTon_2 = self.MnTon_2.GetValue()
+            MnTon_val_2 = ['junk var']* len(files)
+            
+            if (MnTon_2 == True):
+                MnTon_val_2 = self.MnTon_val_2.GetValue().split()
+                if MnTon_val_2[0] == 'all':
+                    MnTon_val_2 = [ float(MnTon_val_2[1])* 1e-3 ]* len(files)
+                elif MnTon_val_2[0] == 'sep':
+                    MnTon_val_2 = MnTon_val_2[1].split(',')
+                    MnTon_val_2 = [float(itime)* 1e-3 for itime in MnTon_val_2]
             
             try:
                 progressMax = len(files)
@@ -745,7 +791,7 @@ class FRS(wx.Frame):
                     Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(file) + '.txt')    # Source pulsing file
             
                     # calculation of extraction time and on time
-                    Row_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
+                    Row_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method, MnTon_2, MnTon_val_2[NextRow-1])
                     
                     Ton = np.average(Ton)
                     
@@ -821,6 +867,13 @@ class FRS(wx.Frame):
             
             df = pd.read_csv(FldPth + '/ListRandom.txt', delim_whitespace = True )
             
+            # Manual Ton
+            MnTon_3 = self.MnTon_3.GetValue()
+            MnTon_val_3 = ['junk']* len(df.C2)
+            
+            if (MnTon_3 == True):
+                MnTon_val_3 = np.array(df.ManualTon)*1e-3
+            
             try:
                 
                 progressMax = len(df.C2)
@@ -840,7 +893,7 @@ class FRS(wx.Frame):
                     Time_C4, S_ampl_C4 = File_handle(FldPth, 'C4Trace' + str(fileC4) + '.txt')    # Source pulsing file
             
                     # calculation of extraction time and on time
-                    Row_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method)
+                    Row_time, Ton, Freq, edge = Extract_time(Time_C2, S_ampl_C2, Time_C4, S_ampl_C4, pek_mag, method, MnTon_3, MnTon_val_3[NextRow -1])
                     
                     Ton = np.average(Ton)
                     
