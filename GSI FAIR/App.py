@@ -455,16 +455,17 @@ def Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd, Ton):
     plt.plot([1, xAxis[0]], [(Tmedian + Tstd)*1000]*2, 'g', label = 'STD(Text) (up) = ' + str( round((Tmedian + Tstd)*1000) ) )
     plt.plot([1, xAxis[0]], [(Tmedian - Tstd)*1000]*2, 'k', label = 'STD(Text) (down) = ' + str( round((Tmedian - Tstd)*1000) ) )
     
-    plt.legend()
+    plt.legend(prop={'size':20})
     
     if (xAxis[0] < 40):
-        plt.xticks( np.arange(1, xAxis[0] + 1, 1) )
+        plt.xticks( np.arange(1, xAxis[0] + 1, 1), fontsize = 16 )
     else:
         h = myround( xAxis[0]/ 40, 5)
-        plt.xticks( np.arange(1, xAxis[0] + h, h) )
+        plt.xticks( np.arange(1, xAxis[0] + h, h), fontsize = 16)
     
-    plt.xlabel('Cycles', fontsize = 14)
-    plt.ylabel('Textraction (ms)', fontsize = 14)
+    plt.yticks(fontsize = 16)
+    plt.xlabel('Cycles', fontsize = 18)
+    plt.ylabel('Textraction (ms)', fontsize = 18)
     plt.grid()
     plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'cycle.jpg')
     plt.close()
@@ -483,17 +484,17 @@ def Histogram_Plot(FldPth, fileC4, fileC2, Flat_formula_list, Tmedian, Tstd, Ton
     # things for ticks
     flat_ext_time = np.sort( np.around( np.array(Flat_formula_list)* 1000 ) )
     rep = Counter(flat_ext_time)
-    plt.xticks( list(rep.keys()) )
+    plt.xticks( list(rep.keys()), fontsize = 16 )
     
     if max(rep.values()) < 50:
-        plt.yticks( np.arange(0, max(rep.values()) + 2, 2 ) )
+        plt.yticks( np.arange(0, max(rep.values()) + 2, 2 ), fontsize = 16 )
     else:
         h = myround(max(rep.values())/ 25, 5)
-        plt.yticks( np.arange(0, max(rep.values()) + h, h) )
+        plt.yticks( np.arange(0, max(rep.values()) + h, h), fontsize = 16 )
         
-    plt.title('median(Text) = ' + str( round(Tmedian*1000, 2)) + ' (ms), STD(Text) = ' + str( round(Tstd*1000, 2)) + ' (ms), Ton = ' + str( round(Ton*1000, 2)) + ' (ms)', fontweight = 'bold', fontsize = 16)
-    plt.xlabel('Textaction (ms)', fontsize = 14)
-    plt.ylabel('Counts', fontsize = 14)
+    plt.title('median(Text) = ' + str( round(Tmedian*1000, 2)) + ' (ms), STD(Text) = ' + str( round(Tstd*1000, 2)) + ' (ms), Ton = ' + str( round(Ton*1000, 2)) + ' (ms)', fontweight = 'bold', fontsize = 20)
+    plt.xlabel('Textaction (ms)', fontsize = 18)
+    plt.ylabel('Counts', fontsize = 18)
     plt.grid()
     plt.savefig(r'' + FldPth + '/C4Trace' + str(fileC4) + 'C2Trace' + str(fileC2) + 'hist.jpg')
     plt.close()
@@ -521,7 +522,7 @@ def Detect_Peak(method, var, var_val):
 class FRS(wx.Frame):
 
     def __init__(self):
-        wx.Frame.__init__(self, None, -1, 'Extraction Time Analyser', 
+        wx.Frame.__init__(self, None, -1, 'Extraction Time Analyzer', 
                           size=(400,720), 
                           style = wx.MINIMIZE_BOX | wx.CLOSE_BOX | wx.CAPTION )
         panel  = wx.Panel(self, -1)
@@ -681,7 +682,7 @@ This tool merges multiple files and analyse extraction time at once. When statis
 are low this tool become very useful.\n\n\
 User can generate plot of extraction time per cycle, raw data, and/or Histogram.\
  The app detects the Ton time from raw data. But if user wants to add it manually, \
-then check the "Manual Ton" option and eneter the value.\n\n\
+then check the "Manual Ton" option and enter the value.\n\n\
 For further details, please refer my report of Get Involved program or contact \
 divyangprajapati72@gmail.com.'
         
@@ -731,7 +732,7 @@ divyangprajapati72@gmail.com.'
         Data_columns = (['File C2', 'File C4', 'First ion (ms)', 'Mean (ms)', 'Median (ms)', \
                          'Standard deviation (ms)', 'ON time (ms)', \
                          'Detected frequncy (Hz)', 'Edge', \
-                         'Voltage (mV)', 'Temperature (K)', 'Pressure (mbar)'])
+                         'Push Volt (mV)', 'Focus Volt (mV)', 'Temperature (K)', 'Pressure (mbar)'])
         Write_in_excel(Data_columns, 0, worksheet)
         
         #%% First option
