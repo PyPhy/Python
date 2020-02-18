@@ -663,31 +663,21 @@ class FRS(wx.Frame):
     
     def AboutApp(self, event):
         
-        Document = 'Extraction Time Analyser\n\
+        Document = 'Extraction Time Analyzer\n\n\
 By: Divyang R. Prajapati\n\
+email: divyangprajapati72@gmail.com\n\
 First release: February 15, 2020\n \n\
-1) Browse Folder:\n\
-Browse the folder in which data files are kept.\n\n\
-2) Select file:\n\
-With this option user analyse a single file of interest. The output file will \
-be saved in a selected folder on the complition of the process.\n\n\
-3) Ordered files:\n\
-Analyse multiple files individually by choosing this option. It is assumed that\
- file number increses in a step of one.\n\n\
-4) Random files:\n\
-Analysis of files having random number is possible with this option. List the C4\
- and corresponding C2 file numbers in "ListRandom.txt".\n\n\
-5) Peak detection method:\n\
-Select the most effective peak detection method for analysis. The SciPy function \
-find_peaks() is used for this purpose.\n\n\
-6) Master Merger Tool:\n\
-This tool merges multiple files and analyse extraction time at once. When statistics \
-are low this tool become very useful.\n\n\
-User can generate plot of extraction time per cycle, raw data, and/or Histogram.\
- The app detects the Ton time from raw data. But if user wants to add it manually, \
-then check the "Manual Ton" option and enter the value.\n\n\
-For further details, please refer my report of Get Involved program or contact \
-divyangprajapati72@gmail.com.'
+Extraction Time Analyser is designed to simplify the analysis of extraction time \
+for FRS-IC. Three selections Select file, Ordered files, and Random files help \
+the user to analyze single or multiple files. The signal detection is the heart\
+ of the analysis, that is the reason that three different peak detection methods\
+ are provided.\n\n\
+For a scientific app, the logo is scientific as well. The logo is the contour map\
+ of the magnetic field of the ADITYA-U tokamak. The layout of an app is simple and\
+ userfriendly.\n\n\
+For the detailed explanation of each section, please refer to my report of the \
+Get Involved program. If some bug or error is detected, feel free to contact me \
+on the given email-id on the personal info.'
         
         dlg = wx.MessageDialog(None, Document, 'About')
         dlg.ShowModal()
