@@ -457,10 +457,10 @@ def Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd, Ton):
     
     plt.legend(prop={'size':20})
     
-    if (xAxis[0] < 40):
+    if (xAxis[0] < 20):
         plt.xticks( np.arange(1, xAxis[0] + 1, 1), fontsize = 16 )
     else:
-        h = myround( xAxis[0]/ 40, 5)
+        h = myround( xAxis[0]/ 20, 5)
         plt.xticks( np.arange(1, xAxis[0] + h, h), fontsize = 16)
     
     plt.yticks(fontsize = 16)
@@ -472,7 +472,7 @@ def Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd, Ton):
 
 #%% Histogram plot
     
-def Histogram_Plot(FldPth, fileC4, fileC2, Flat_formula_list, Tmedian, Tstd, Ton):
+def Histogram_Plot(FldPth, fileC4, fileC2, Flat_formula_list, Tmedian, Tstd, Tmin):
     
     # in Text_plot, Ton is subtracted. which is according to the formulae
     
@@ -486,13 +486,16 @@ def Histogram_Plot(FldPth, fileC4, fileC2, Flat_formula_list, Tmedian, Tstd, Ton
     rep = Counter(flat_ext_time)
     plt.xticks( list(rep.keys()), fontsize = 16 )
     
-    if max(rep.values()) < 50:
+    if max(rep.values()) < 25:
         plt.yticks( np.arange(0, max(rep.values()) + 2, 2 ), fontsize = 16 )
     else:
-        h = myround(max(rep.values())/ 25, 5)
-        plt.yticks( np.arange(0, max(rep.values()) + h, h), fontsize = 16 )
+        try:
+            h = myround(max(rep.values())/ 25, 5)
+            plt.yticks( np.arange(0, max(rep.values()) + h, h), fontsize = 16 )
+        except ZeroDivisionError:
+            plt.yticks(fontsize = 16)
         
-    plt.title('median(Text) = ' + str( round(Tmedian*1000, 2)) + ' (ms), STD(Text) = ' + str( round(Tstd*1000, 2)) + ' (ms), Ton = ' + str( round(Ton*1000, 2)) + ' (ms)', fontweight = 'bold', fontsize = 20)
+    plt.title('First ion = ' + str( round(Tmin*1000, 2)) + ' (ms), median(Text) = ' + str( round(Tmedian*1000, 2)) + ' (ms), STD(Text) = ' + str( round(Tstd*1000, 2)) + ' (ms)', fontweight = 'bold', fontsize = 20)
     plt.xlabel('Textaction (ms)', fontsize = 18)
     plt.ylabel('Counts', fontsize = 18)
     plt.grid()
@@ -778,7 +781,7 @@ divyangprajapati72@gmail.com.'
                     Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
                     
                 if (self.cbh1.GetValue() == True):
-                    Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
+                    Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Tmin)
                 
                 # Close the excel file now
                 workbook.close()
@@ -851,7 +854,7 @@ divyangprajapati72@gmail.com.'
                             Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
     
                         if (self.cbh2.GetValue() == True):
-                            Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
+                            Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Tmin)
                     
                     else:
                         
@@ -881,7 +884,7 @@ divyangprajapati72@gmail.com.'
                         Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
 
                     if (self.cbh2.GetValue() == True):
-                        Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
+                        Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Tmin)
 
                 # Close the progress bar
                 dialog.Destroy()
@@ -953,7 +956,7 @@ divyangprajapati72@gmail.com.'
                             Cycle_plot(FldPth, fileC4, fileC2, Text_plot, Tmedian, Tstd, Ton)
     
                         if (self.cbh3.GetValue() == True):
-                            Histogram_Plot(FldPth, fileC4, fileC2, Flat_formula_list, Tmedian, Tstd, Ton)
+                            Histogram_Plot(FldPth, fileC4, fileC2, Flat_formula_list, Tmedian, Tstd, Tmin)
 
                     else:
                         
@@ -983,7 +986,7 @@ divyangprajapati72@gmail.com.'
                         Cycle_plot(FldPth, file, file, Text_plot, Tmedian, Tstd, Ton)
                     
                     if (self.cbh3.GetValue() == True):
-                        Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Ton)
+                        Histogram_Plot(FldPth, file, file, Flat_formula_list, Tmedian, Tstd, Tmin)
 
                 # Close the progress bar
                 dialog.Destroy()
