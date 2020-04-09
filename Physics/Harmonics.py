@@ -71,8 +71,8 @@ K = sqrt( ((2*l + 1)* factorial(l - abs(m)))/ (4* pi* factorial(l + abs(m))) )
 
 #%% Value of Phi and Theta
 
-phi = linspace(0, 2* pi, 100)
-tht = linspace(0, pi, 100)
+phi = linspace(0, 2* pi, 181)
+tht = linspace(0, pi, 91)
 
 Phi, Tht = meshgrid(phi, tht)
 
@@ -81,8 +81,8 @@ Phi, Tht = meshgrid(phi, tht)
 p, q = shape(Phi)
 Y    = zeros([p, q])
 
-for i in range(0 + 1, p - 1):
-    for j in range(0 + 1, q - 1):
+for i in range(0, p):
+    for j in range(0, q):
 
         if m > 0:
         
@@ -100,15 +100,9 @@ for i in range(0 + 1, p - 1):
 #%% Take care about negative Y
 p, q = shape(Y)
 
-for i in range(0, p):
-    for j in range(0, q):
-
-        if Y[i, j] < 0:
-            Tht[i, j] = Tht[i, j] + pi
-
 #%% Finally convert data to cartesian form
 
-x, y, z = Shperical2Cartesian(Y, Tht, Phi)
+x, y, z = Shperical2Cartesian(abs(Y), Tht, Phi)
 
 #%% plotting
 
