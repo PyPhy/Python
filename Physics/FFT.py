@@ -17,10 +17,10 @@ class FFT():
         self.f = Signal
         self.N = len(t)
         
-    def Freq(self, f, N):
+    def Freq(self):
         
-        freqs = arange(1, N, 1)[:int(N/2) - 1]
-        Ampts = (2/N)* abs( fft(f)[:int(N/2)] )[1:]
+        freqs = arange(1, self.N, 1)[:int(self.N/2) - 1]
+        Ampts = (2/self.N)* abs( fft(self.f)[:int(self.N/2)] )[1:]
         
         return freqs, Ampts
 
@@ -36,7 +36,7 @@ class FFT():
         axs[0].set_title('Signal', fontweight = 'bold', fontsize = 20)
         
         # frequency
-        freqs, Ampts = self.Freq( self.f, self.N)
+        freqs, Ampts = self.Freq()
         
         h = axs[1].plot(freqs, Ampts, 'r')
         datacursor(h)
