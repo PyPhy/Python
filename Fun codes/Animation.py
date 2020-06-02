@@ -5,7 +5,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
-#%%
+#%% Data
+
+x = np.linspace(0, 2*np.pi, 200)
+y = np.sin(x)
+
+#%% Animate
 
 x_Frame, y_Frame = [], []
 
@@ -26,14 +31,14 @@ def PlotSettings():
 
 def NewFrame(frame):
     
-    x_Frame.append(frame)
-    y_Frame.append(np.sin(frame))
+    x_Frame.append(x[frame])
+    y_Frame.append(y[frame])
     
     ln.set_data(x_Frame, y_Frame)
     
     return ln,
 
-ani = FuncAnimation(fig, NewFrame, frames=np.linspace(0, 2*np.pi, 140),
+ani = FuncAnimation(fig, NewFrame, frames = range(0, len(x)),
                     init_func = PlotSettings, blit=True)
 
 ani.save('SineWave.mp4', writer = 'ffmpeg', fps = 20)
