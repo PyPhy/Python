@@ -14,39 +14,25 @@ def Shperical2Cartesian(r, theta, phi):
 
 #%% Legendre Polynomials
 
-def Legendre_Poly(n, x):
+def legendre_polynomial(l, m, x):
+    pmm = 1.0
+    if m > 0:
+        sign = 1.0 if m % 2 == 0 else -1.0
+        pmm = sign * pow( factorial(2 * m - 1) * (1.0 - x * x), ((m / 2)) )
 
-    if n == 0:
-        P = 1
-        
-    elif n == 1:
-        P = x
-        
-    else:
-        P = (1/n)* ((2*n - 1)* x* Legendre_Poly(n-1, x) - (n - 1)* Legendre_Poly(n-2, x))
+    if l == m:
+        return pmm
 
-    return P
+    pmm1 = x * (2 * m + 1) * pmm
+    if l == m + 1:
+        return pmm1
 
-#%% Associated Legendre Polynomials
+    for n in range(m + 2, l + 1):
+        pmn = (x * (2 * n - 1) * pmm1 - (n + m - 1) * pmm) / (n - m)
+        pmm = pmm1
+        pmm1 = pmn
 
-def Asso_Leg(l, m, x):
-    
-    try:
-        if m == 0:
-            P = Legendre_Poly(l, x)
-            
-        elif m > 0:
-            P = (1/ sqrt(1 - x**2))* ((l-m+1)* x* Asso_Leg(l, m-1, x) \
-                                    - (l+m-1)* Asso_Leg(l-1, m-1, x) )
-                                
-        elif m < 0:
-            m = abs(m)
-            P = ((-1)**m) * (factorial(l - m)/ factorial(l + m))* Asso_Leg(l, m, x)
-            
-    except ZeroDivisionError:
-        P = 0
-    
-    return P
+    return pmm1
 
 #%% Main code
     
@@ -71,8 +57,8 @@ K = sqrt( ((2*l + 1)* factorial(l - abs(m)))/ (4* pi* factorial(l + abs(m))) )
 
 #%% Value of Phi and Theta
 
-phi = linspace(0, 2* pi, 100)
-tht = linspace(0, pi, 100)
+phi = linspace(0, 2* pi, 181)
+tht = linspace(0, pi, 91)
 
 Phi, Tht = meshgrid(phi, tht)
 
@@ -81,34 +67,28 @@ Phi, Tht = meshgrid(phi, tht)
 p, q = shape(Phi)
 Y    = zeros([p, q])
 
-for i in range(0 + 1, p - 1):
-    for j in range(0 + 1, q - 1):
+for i in range(0, p):
+    for j in range(0, q):
 
         if m > 0:
         
-            Y[i, j] = sqrt(2)* K* cos(m* Phi[i, j])* Asso_Leg(l, m, cos(Tht[i, j]))
+            Y[i, j] = sqrt(2) * K * cos(m * Phi[i, j]) * legendre_polynomial(l, m, cos(Tht[i, j]))
         
         elif m < 0:
         
-            Y[i, j] = sqrt(2)* K* sin(abs(m)* Phi[i, j])* Asso_Leg(l, abs(m), cos(Tht[i, j]))
+            Y[i, j] = sqrt(2) * K * sin(abs(m) * Phi[i, j]) * legendre_polynomial(l, abs(m), cos(Tht[i, j]))
         
-        elif m == 0:
+        else:
         
-            Y[i, j] = K* Legendre_Poly(l, cos(Tht[i, j]))
+            Y[i, j] = K * legendre_polynomial(l, 0, cos(Tht[i, j]))
 
 
 #%% Take care about negative Y
 p, q = shape(Y)
 
-for i in range(0, p):
-    for j in range(0, q):
-
-        if Y[i, j] < 0:
-            Tht[i, j] = Tht[i, j] + pi
-
 #%% Finally convert data to cartesian form
 
-x, y, z = Shperical2Cartesian(Y, Tht, Phi)
+x, y, z = Shperical2Cartesian(abs(Y), Tht, Phi)
 
 #%% plotting
 
