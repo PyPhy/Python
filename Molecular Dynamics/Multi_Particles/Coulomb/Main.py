@@ -55,7 +55,6 @@ class Solver:
         ListOfy  = open(r'Data/y.txt', 'w')
         ListOfvx = open(r'Data/vx.txt', 'w')
         ListOfvy = open(r'Data/vy.txt', 'w')
-        ListOft  = open(r'Data/t.txt', 'w')
         
         t = 0
         
@@ -102,14 +101,10 @@ class Solver:
             a1x, a1y = a2x, a2y
             t += self.Δt
         
-        self.time = np.arange(0, t + self.Δt, self.Δt)
-        np.savetxt(ListOft, self.time)
-        
         ListOfx.close()
         ListOfy.close()
         ListOfvx.close()
         ListOfvy.close()
-        ListOft.close()
 
 
 #%%
