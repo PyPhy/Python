@@ -6,7 +6,7 @@ Created on Sat Jul 11 17:01:44 2020
 @author: divyang
 """
 
-from numpy import array, sum, append, delete, shape, sqrt
+from numpy import array, sum, append, delete, shape, sqrt, linspace
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
@@ -71,7 +71,6 @@ class PlotData:
 
         # Read Data Files
         Q    = pd.read_csv(r'Data/Q.txt', header = None, sep = ' ')
-        time = pd.read_csv(r'Data/t.txt',  header = None)
         x    = pd.read_csv(r'Data/x.txt',  header = None, sep = ' ')
         y    = pd.read_csv(r'Data/y.txt',  header = None, sep = ' ')
         Vx   = pd.read_csv(r'Data/vx.txt', header = None, sep = ' ')
@@ -81,11 +80,13 @@ class PlotData:
 
         self.Q    =  Q.values.tolist()[0]
         self.N    = int(data[0])
-        self.time = array(time[0])[:-2]
         self.x    = array(x)
         self.y    = array(y)
         self.Vx   = array(Vx)
         self.Vy   = array(Vy)
+        
+        p, _ = shape(x)
+        self.time = linspace(0, (p-1)* data[2], p)
         
         self.E, self.KE, self.PE = Energy(self.Q, self.N, self.x, self.y, self.Vx, self.Vy).EnergyCalculations()
 
