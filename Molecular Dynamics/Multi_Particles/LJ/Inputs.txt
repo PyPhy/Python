@@ -1,0 +1,5 @@
+N    = 2
+tmax = 1
+dt   = 2E-4
+rm   = 1
+eps  = 1
