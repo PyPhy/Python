@@ -44,7 +44,9 @@ class Energy:
     def EnergyCalculations(self):
 
         # kinetic energy
-        KE = 0.5* sum( self.Vx**2 + self.Vy**2, axis=1)
+        KE = 0
+        for i in range(0, len(self.M)):
+            KE += 0.5* self.M[i]* ( self.Vx[:,i]**2 + self.Vy[:,i]**2 )
 
         # electrostatic potential energy
         p, _ = shape( self.x )
