@@ -59,6 +59,7 @@ void main()
 
 	double tmax = Data[1], dt = Data[2], rm = Data[3], eps = Data[4], t = 0;
 	int N = Data[0];
+	int count = 1;
 
 	double M[N], x[N], y[N], vx[N], vy[N], aox[N], aoy[N], a1x[N], a1y[N], a2x[N], a2y[N];
 
@@ -109,16 +110,20 @@ void main()
 		}
 
 		// Save data
-		for(int i = 0; i < N; i++){
-			fprintf(fX,  "%lE\t", x[i]);
-			fprintf(fY,  "%lE\t", y[i]);
-			fprintf(fVx, "%lE\t", vx[i]);
-			fprintf(fVy, "%lE\t", vy[i]);
+		if(count == 10){
+			count = 1;
+
+			for(int i = 0; i < N; i++){
+				fprintf(fX,  "%lE\t", x[i]);
+				fprintf(fY,  "%lE\t", y[i]);
+				fprintf(fVx, "%lE\t", vx[i]);
+				fprintf(fVy, "%lE\t", vy[i]);
+			}
+			fprintf(fX,  "\n");
+			fprintf(fY,  "\n");
+			fprintf(fVx, "\n");
+			fprintf(fVy, "\n");
 		}
-		fprintf(fX,  "\n");
-		fprintf(fY,  "\n");
-		fprintf(fVx, "\n");
-		fprintf(fVy, "\n");
 
 		for(int i = 0; i < N; i++){
 			aox[i] = a1x[i];
@@ -132,6 +137,7 @@ void main()
 
 		// time update
 		t += dt;
+		count += 1;
 	}
 
 	fclose(fX);
