@@ -47,6 +47,8 @@ class Energy:
         KE = 0
         for i in range(0, len(self.M)):
             KE += 0.5* self.M[i]* ( self.Vx[:,i]**2 + self.Vy[:,i]**2 )
+        
+        # KE = 0.5* sum( self.Vx**2 + self.Vy**2, axis=1)
 
         # electrostatic potential energy
         p, _ = shape( self.x )
@@ -90,7 +92,6 @@ class PlotData:
         p, _ = shape(x)
         self.time = linspace(0, (p-1)* data[2], p)
         
-        
         self.E, self.KE, self.PE = Energy(self.M, self.N, self.x, self.y, self.Vx, self.Vy).EnergyCalculations()
 
     def AnimamteParticles(self, Skip = 20):
@@ -120,7 +121,6 @@ class PlotData:
             ax1.set_ylabel('y', fontsize = 16)
             ax1.set_xlim([-1.5, 1.5])
             ax1.set_ylim([-1.5, 1.5])
-            ax1.set_title('FRA', fontweight = 'bold', fontsize = 20)
 
             # PLOT - 2: Energy
             if (frames == 0):
@@ -166,5 +166,5 @@ class PlotData:
 if __name__ == '__main__':
 
     DoMyWork = PlotData()
-    # DoMyWork.AnimamteParticles(Skip = 200)
+    # DoMyWork.AnimamteParticles(Skip = 25)
     DoMyWork.PlotEnergy()
