@@ -144,7 +144,6 @@ class PlotData:
             ax1.set_ylabel('y', fontsize = 16)
             ax1.set_xlim([-5, 5])
             ax1.set_ylim([-5, 5])
-            ax1.set_title('FRA', fontweight = 'bold', fontsize = 20)
 
             # PLOT - 2: Energy
             if (frames == 0):
@@ -190,5 +189,5 @@ class PlotData:
 if __name__ == '__main__':
 
     DoMyWork = PlotData()
-    # DoMyWork.AnimamteParticles(Skip = 200)
+    # DoMyWork.AnimamteParticles(Skip = 75)
     DoMyWork.PlotEnergy()
