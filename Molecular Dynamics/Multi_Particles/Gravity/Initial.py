@@ -11,9 +11,20 @@ class MakeDataFiles:
     
     def __init__(self):
         
-        self.x,  self.y  = [-1, 0, 1], [0, 0, 0]  # Position
-        self.Vx, self.Vy = [0, 0, 0], [1, -1, 0]  # Velocity
-        self.M = [1, 1, 1] # Mass
+        # Experiment - 1
+        # self.x,  self.y  = [-1, 1], [0, 0]
+        # self.Vx, self.Vy = [0, 0], [-0.5, 0.5]
+        # self.M = [1, 1]
+        
+        # Experiment - 2
+        # self.x,  self.y  = [-1, 0], [1, 0]
+        # self.Vx, self.Vy = [1.2, 0], [0, 0]
+        # self.M = [1, 4]
+        
+        # Experiment - 3
+        self.x,  self.y  = [-1, 0, 1], [0, 0, 0]
+        self.Vx, self.Vy = [0, 0, 0], [1, -1, 0]
+        self.M = [1, 1, 1]
     
 
     def WriteDataFiles(self):
