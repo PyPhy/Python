@@ -26,17 +26,30 @@ class Energy:
         self.Vx, self.Vy = Vx, Vy
 
 
+    # def Pot(self, x, y):
+        
+    #     W = 0
+        
+    #     for i in range(0, self.N):
+    #         for j in range(0, self.N):
+    #             if (i != j):
+                    
+    #                 r = ( (x[i] - x[j])**2 + (y[i] - y[j])**2 )**0.5
+                    
+    #                 W += 0.5* self.Q[i]* self.Q[j]/ r
+
+    #     return W
+    
     def Pot(self, x, y):
         
         W = 0
         
         for i in range(0, self.N):
-            for j in range(0, self.N):
-                if (i != j):
+            for j in range(i+1, self.N):
                     
-                    r = ( (x[i] - x[j])**2 + (y[i] - y[j])**2 )**0.5
-                    
-                    W += 0.5* self.Q[i]* self.Q[j]/ r
+                r = ( (x[i] - x[j])**2 + (y[i] - y[j])**2 )**0.5
+                
+                W += self.Q[i]* self.Q[j]/ r
 
         return W
     
@@ -117,7 +130,6 @@ class PlotData:
             ax1.set_ylabel('y', fontsize = 16)
             ax1.set_xlim([-3, 3])
             ax1.set_ylim([-3, 3])
-            ax1.set_title('FRA', fontweight = 'bold', fontsize = 20)
 
             # PLOT - 2: Energy
             if (frames == 0):
