@@ -14,13 +14,13 @@ from matplotlib.gridspec import GridSpec
 #%%
 
 class Energy:
-    
+
     '''
         This class will calculate Kinetic, Potential, and Total Energy per particle.
     '''
-    
+
     def __init__(self, rm, ep, M, N, x, y, Vx, Vy):
-        
+
         self.rm, self.ep = rm, ep
         self.M,  self.N  = M,  N
         self.x,  self.y  = x,  y
@@ -28,19 +28,19 @@ class Energy:
 
 
     def Pot(self, x, y):
-        
+
         W = 0
-        
+
         for i in range(0, self.N):
             for j in range(0, self.N):
                 if (i != j):
-                    
+
                     r = ( (x[i] - x[j])**2 + (y[i] - y[j])**2 )**0.5
-                    
+
                     W += 0.5* self.ep* ( (self.rm/ r)**12 - 2* (self.rm/ r)**6 )
 
         return W
-    
+
 
     def EnergyCalculations(self):
 
@@ -48,6 +48,8 @@ class Energy:
         KE = 0
         for i in range(0, len(self.M)):
             KE += 0.5* self.M[i]* ( self.Vx[:,i]**2 + self.Vy[:,i]**2 )
+
+        # KE = 0.5* sum( self.Vx**2 + self.Vy**2, axis=1)
 
         # electrostatic potential energy
         p, _ = shape( self.x )
@@ -69,7 +71,7 @@ class Energy:
 #%%
 
 class PlotData:
-    
+
     def __init__(self):
 
         # Read Data Files
@@ -89,10 +91,10 @@ class PlotData:
         self.Vy = array(Vy)
         self.rm = float(data[3])
         self.ep = float(data[4])
-        
+
         p, _ = shape(x)
         self.time = linspace(0, (p-1)* data[2], p)
-        
+
         self.E, self.KE, self.PE = Energy(self.rm, self.ep, self.M, self.N, self.x, self.y, self.Vx, self.Vy).EnergyCalculations()
 
     def AnimamteParticles(self, Skip = 20):
@@ -122,7 +124,6 @@ class PlotData:
             ax1.set_ylabel('y', fontsize = 16)
             ax1.set_xlim([-5, 5])
             ax1.set_ylim([-5, 5])
-            ax1.set_title('FRA', fontweight = 'bold', fontsize = 20)
 
             # PLOT - 2: Energy
             if (frames == 0):
@@ -148,12 +149,12 @@ class PlotData:
                 ke = self.KE[fS]
                 pe = self.PE[fS]
                 to = t
-            
+
             plt.pause(1e-11)
 
 
     def PlotEnergy(self):
-        
+
         fig = plt.figure('Energy conservation')
         plt.plot( self.time, self.E,  label = r'$E_{sys}$')
         plt.plot( self.time, self.KE, label = r'KE')
@@ -168,5 +169,5 @@ class PlotData:
 if __name__ == '__main__':
 
     DoMyWork = PlotData()
-    # DoMyWork.AnimamteParticles(Skip = 200)
+    # DoMyWork.AnimamteParticles(Skip = 75)
     DoMyWork.PlotEnergy()
