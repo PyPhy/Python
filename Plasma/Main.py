@@ -43,22 +43,28 @@ class Solver:
         
         Ex, Ey, Ez = [0]* self.N, [0]* self.N, [0]* self.N
         
-        # Interaction field
-        for i in range(0, self.N):
-            for j in range(0, self.N):
-                if (i != j):
-                    
-                    r3 = ( (self.x[i] - self.x[j])**2 + (self.y[i] - self.y[j])**2 + (self.z[i] - self.z[j])**2 )**1.5
-                    
-                    Ex[i] += self.Q[j]* (self.x[i] - self.x[j])/ r3
-                    Ey[i] += self.Q[j]* (self.y[i] - self.y[j])/ r3
-                    Ez[i] += self.Q[j]* (self.z[i] - self.z[j])/ r3
+        # Case - 1 : Constant field
+        # for i in range(0, self.N):
+        #     Ex[i] += 1
+        #     Ey[i] += 0
+        #     Ez[i] += 0
         
-        # Constant field
+        # Case - 2 : Nonuniform E Field
         for i in range(0, self.N):
-            Ex[i] += 1
+            Ex[i] += 1* np.cos(2* self.x[i])
             Ey[i] += 0
             Ez[i] += 0
+            
+        # Case - 3 : Interaction field
+        # for i in range(0, self.N):
+        #     for j in range(0, self.N):
+        #         if (i != j):
+                    
+        #             r3 = ( (self.x[i] - self.x[j])**2 + (self.y[i] - self.y[j])**2 + (self.z[i] - self.z[j])**2 )**1.5
+                    
+        #             Ex[i] += self.Q[j]* (self.x[i] - self.x[j])/ r3
+        #             Ey[i] += self.Q[j]* (self.y[i] - self.y[j])/ r3
+        #             Ez[i] += self.Q[j]* (self.z[i] - self.z[j])/ r3
         
         return Ex, Ey, Ez
     
@@ -67,7 +73,7 @@ class Solver:
         Bx, By, Bz = [0]* self.N, [0]* self.N, [0]* self.N
         
         # Case - 1 : Constant B field
-        Bz = [1]* self.N
+        # Bz = [1]* self.N
         
         # Case - 2 : Constant Grad - B
         # for i in range(0, self.N):
