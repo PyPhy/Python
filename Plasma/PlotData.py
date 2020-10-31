@@ -6,7 +6,7 @@ Created on Sat Jul 11 17:01:44 2020
 @author: divyang
 """
 
-from numpy import array, transpose, sum, append, delete, shape, sqrt, linspace
+from numpy import array, transpose, sum, append, delete, shape, sqrt, linspace, sin
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
@@ -32,17 +32,20 @@ class Energy:
         W = 0
 
         for i in range(0, self.N):
-            
-            # Interaction Potential
-            for j in range(0, self.N):
-                if (i != j):
-
-                    r = ( (x[i] - x[j])**2 + (y[i] - y[j])**2 + (z[i] - z[j])**2 )**0.5
-
-                    W += 0.5* self.Q[i]* self.Q[j]/ r
         
-            # External Force Potential
-            W -= x[i]* 1 + y[i]* 0 + z[i]* 0
+            # Case - 1 : External Force Potential
+            # W -= x[i]* 1 + y[i]* 0 + z[i]* 0
+            
+            # Case - 2 : Nonuniform E field
+            W -= 0.5* sin(2* x[i])
+            
+            # Case - 3 : Interaction Potential
+            # for j in range(0, self.N):
+            #     if (i != j):
+
+            #         r = ( (x[i] - x[j])**2 + (y[i] - y[j])**2 + (z[i] - z[j])**2 )**0.5
+
+            #         W += 0.5* self.Q[i]* self.Q[j]/ r
 
         return W
 
@@ -142,7 +145,7 @@ class PlotData:
             fS = frames* Skip
 
             # PLOT - 1: Particles
-            # ax1.clear()
+            ax1.clear()
 
             ax1.scatter( self.x[fS], self.y[fS], self.z[fS], marker = 'o' )
 
