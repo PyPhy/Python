@@ -26,24 +26,29 @@ class MakeDataFiles:
         # self.Vx, self.Vy, self.Vz = [2], [0], [0.5]
         # self.M,  self.Q           = [1], [-1]
         
-        # Example - 4 : Grad - B Drift
-        # self.x,  self.y,  self.z  = [0], [0], [-4]
-        # self.Vx, self.Vy, self.Vz = [1], [0], [1]
-        # self.M,  self.Q           = [1], [1]
-        
-        # Example - 5 : Curvature Drift
-        # self.x,  self.y,  self.z  = [3], [0], [0]
-        # self.Vx, self.Vy, self.Vz = [1], [1], [0]
-        # self.M,  self.Q           = [1], [1]
-        
-        # Example - 6 : Magnetic Mirror
+        # Example - 4 : E X B drift
         # self.x,  self.y,  self.z  = [0], [0], [0]
         # self.Vx, self.Vy, self.Vz = [1], [1], [0]
         # self.M,  self.Q           = [1], [1]
         
-        # Example - 7 : E X B drift
+        # Example - 5 : Grad - B Drift  (Nonuniform B field)
+        # self.x,  self.y,  self.z  = [0], [0], [-4]
+        # self.Vx, self.Vy, self.Vz = [1], [0], [1]
+        # self.M,  self.Q           = [1], [1]
+        
+        # Example - 6 : Curvature Drift (Nonuniform B field)
+        # self.x,  self.y,  self.z  = [3], [0], [0]
+        # self.Vx, self.Vy, self.Vz = [1], [1], [0]
+        # self.M,  self.Q           = [1], [1]
+        
+        # Example - 7 : Magnetic Mirror (Nonuniform B field)
+        # self.x,  self.y,  self.z  = [0], [0], [0]
+        # self.Vx, self.Vy, self.Vz = [1], [1], [0]
+        # self.M,  self.Q           = [1], [1]
+        
+        # Example - 8 : Nonuniform E field
         self.x,  self.y,  self.z  = [0], [0], [0]
-        self.Vx, self.Vy, self.Vz = [1], [1], [0]
+        self.Vx, self.Vy, self.Vz = [1], [0], [0]
         self.M,  self.Q           = [1], [1]
 
 
